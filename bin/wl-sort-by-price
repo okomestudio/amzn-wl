@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+
+cat "$@" \
+    | jq -s 'sort_by(.effective_price.value | tonumber)' \
+    | jq -c 'map(select(.byline | contains("Kindle")))' \
+    | jq .

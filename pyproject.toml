@@ -1,0 +1,98 @@
+[build-system]
+requires = ["setuptools>=67.8.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "amzn_wl"
+version = "23.7.0"
+authors = [{name="Taro Sato", email="okomestudio@gmail.com"}]
+description = "amzn-wl for Python"
+readme = "README.rst"
+requires-python = ">=3.9"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Utilities",
+]
+dependencies = [
+    "dataclasses-json",
+    "selenium",
+]
+
+[project.optional-dependencies]
+dev = [
+    "black==23.3.0",
+    "flake8==6.0.0",
+    "flake8-docstrings==1.7.0",
+    "isort[pyproject]==5.12.0",
+    "pre-commit==3.3.2",
+    "pydocstyle[toml]==6.3.0",
+]
+
+test = [
+    "coverage[toml]==7.2.7",
+    "pytest==7.3.1",
+    "pytest-cov==4.1.0",
+    "pytest-mock==3.10.0",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/okomestudio/amzn-wl"
+"Buck Tracker" = "https://github.com/okomestudio/amzn-wl/issues"
+
+[project.scripts]
+amzn-wl = "amzn_wl.__main__:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+license-files = ["LICENSE.txt"]
+include-package-data = true
+package-data = {"amzn_wl" = []}
+
+[tool.black]
+line-length = 88
+py36 = true
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+[tool.coverage.report]
+exclude_lines = [
+    "def __repr__",
+    "def __str__",
+    "except ImportError",
+    "if __name__ == .__main__.:",
+    "log(|ging).(debug|info|warning)",
+    "pragma: no cover",
+    "raise AssertionError",
+    "raise NotImplementedError",
+]
+
+[tool.isort]
+line_length = 88
+
+[tool.pydocstyle]
+convention = "google"
+
+[tool.pytest.ini_options]
+minversion = "7.3"
+addopts = "-vv --cov=amzn_wl --cov-report=term-missing"
+testpaths = [
+    "tests",
+]
