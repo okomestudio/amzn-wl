@@ -1,9 +1,11 @@
+"""Selenium drivers."""
 from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
 
 
-def create_driver():
-    options = Options()
-    options.headless = True
-    driver = webdriver.Chrome()  # options=options
+def create_driver(headless: bool = True) -> webdriver.Chrome:
+    """Create a webdriver."""
+    options = webdriver.ChromeOptions()
+    if headless:
+        options.add_argument("--headless=new")
+    driver = webdriver.Chrome(options=options)
     return driver

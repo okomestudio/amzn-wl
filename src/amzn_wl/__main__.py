@@ -1,6 +1,7 @@
+"""Amazon Wishlist dumper."""
 import logging
 import time
-from argparse import ArgumentParser
+from argparse import ArgumentParser, BooleanOptionalAction
 
 from .drivers import create_driver
 from .signin import signin
@@ -10,14 +11,15 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def dump_wishlist_items(region, dump):
+def dump_wishlist_items(region, dump, headless):
+    """Dump items from all wishlists to JSONL."""
     landing_urls = {
         "jp": "https://www.amazon.co.jp/?language=ja_JP",
         "us": "https://www.amazon.com/",
     }
     url = landing_urls[region]
 
-    driver = create_driver()
+    driver = create_driver(headless=headless)
 
     items = []
     try:
@@ -35,10 +37,24 @@ def dump_wishlist_items(region, dump):
                 f.write(item.to_json(ensure_ascii=False) + "\n")
 
 
-def main():
-    p = ArgumentParser()
-    p.add_argument("--region", "-r", type=str, default="us", choices=("jp", "us"))
-    p.add_argument("--dump", "-d", type=str, default="dump.jsonl")
+def main():  # noqa
+    p = ArgumentParser(description=__doc__)
+    p.add_argument(
+        "--region",
+        "-r",
+        type=str,
+        default="us",
+        choices=("jp", "us"),
+        help="region (default: 'us')",
+    )
+    p.add_argument(
+        "--dump",
+        "-d",
+        type=str,
+        default="dump.jsonl",
+        help="output dump JSONL file (default: 'dump.jsonl')",
+    )
+    p.add_argument("--headless", action=BooleanOptionalAction, help="use headless mode")
 
     args = p.parse_args()
 
