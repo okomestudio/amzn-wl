@@ -4,4 +4,5 @@
 cat "$@" \
     | jq -s 'sort_by(.effective_price.value | tonumber)' \
     | jq -c 'map(select(.byline | contains("Kindle")))' \
-    | jq .
+    | jq '.[] | [.effective_price.value, .title[0:40], .url, .price_drop.original_price.value ]' \
+    | jq -r '@csv'
