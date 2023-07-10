@@ -12,7 +12,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
-from .utils import get, new_window, sanitize_url
+from .utils import get, gets, new_window, sanitize_url
 from . import primitives, products
 
 logger = logging.getLogger(__name__)
@@ -21,13 +21,62 @@ logger = logging.getLogger(__name__)
 @dataclass_json
 @dataclass
 class Wishlist:
+    """Wishlist."""
+
     url: str
     name: str
 
 
 @dataclass_json
 @dataclass
+class Price(products.Price):
+    """Price extracted from wishlist."""
+
+    @classmethod
+    def extract_from_wishlist_item(cls, elmt) -> "Price":
+        """Extract Price from given wishlist product element."""
+        price_range_elmt = get(elmt, ".//span[contains(@class, 'a-price-range')]")
+        if price_range_elmt:
+            # for a price range, take the higher one
+            price_elmt = gets(price_range_elmt, ".//span[@class='a-price']")[1]
+            logger.info("Price range found: %s", price_range_elmt.text)
+        else:
+            price_elmt = get(elmt, ".//span[contains(@class, 'a-price')]")
+
+        if not price_elmt:
+            logger.info("Price element not found")
+            return
+
+        price_symbol = get(
+            price_elmt, ".//span[contains(@class, 'a-price-symbol')]", "text"
+        )
+        price_whole = get(price_elmt, ".//span[contains(@class, 'a-price-whole')]")
+        if not (price_symbol and price_whole):
+            logger.info(
+                "Price symbol and/or price whole elements not found: %s, %s",
+                price_symbol,
+                price_whole,
+            )
+            return
+
+        price_integer = price_whole.text  # this includes decimal point if exists
+        price_fraction = get(
+            price_elmt, ".//span[contains(@class, 'a-price-fraction')]", "text"
+        )
+
+        price = cls.parse(
+            price_symbol
+            + price_integer
+            + (price_fraction if price_fraction is not None else "")
+        )
+        return price
+
+
+@dataclass_json
+@dataclass
 class PriceDrop:
+    """Price drop info."""
+
     value: Decimal = None
     percentage: primitives.Percentage = None
     original_price: products.Price = None
@@ -36,11 +85,13 @@ class PriceDrop:
 @dataclass_json
 @dataclass
 class Product(products.Product):
+    """Product info found in wishlist."""
+
     wishlist: Wishlist = None
     price_drop: dict = None
     effective_price: products.Price = None
 
-    def __post_init__(self):
+    def __post_init__(self):  # noqa
         if self.loyalty:
             self.effective_price = products.Price(
                 self.price.value - self.loyalty.point, self.price.currency
@@ -50,6 +101,7 @@ class Product(products.Product):
 
 
 def extract_wishlist_item(driver, wishlist, elmt):
+    """Extract item info from wishlist item row."""
     link = get(elmt, ".//a[@title]")
     if not link:
         # Likely "This title is no longer available"
@@ -72,18 +124,9 @@ def extract_wishlist_item(driver, wishlist, elmt):
         lambda e: e.get_attribute("aria_label"),
     )
 
-    price_symbol = get(elmt, ".//span[contains(@class, 'a-price-symbol')]", "text")
-    price_whole = get(elmt, ".//span[contains(@class, 'a-price-whole')]")
-    if not (price_symbol and price_whole):
+    price = Price.extract_from_wishlist_item(elmt)
+    if not price:
         return
-    price_integer = price_whole.text  # this will include decimal point if exists
-    price_fraction = get(elmt, ".//span[contains(@class, 'a-price-fraction')]", "text")
-
-    price = products.Price.parse(
-        price_symbol
-        + price_integer
-        + (price_fraction if price_fraction is not None else "")
-    )
 
     price_drop_elmt = get(elmt, ".//div[contains(@class, 'itemPriceDrop')]")
     if price_drop_elmt:
@@ -120,6 +163,7 @@ def extract_wishlist_item(driver, wishlist, elmt):
 
 
 def scroll_till_fully_loaded(driver, stop_condition, max_try=40, wait=1):
+    """Scroll down in a wishlist page."""
     for _ in range(max_try):
         try:
             WebDriverWait(driver, wait).until(
@@ -135,10 +179,10 @@ def scroll_till_fully_loaded(driver, stop_condition, max_try=40, wait=1):
 
 
 def get_items_from_wishlist(driver, items, wishlist):
+    """Get items from given wishlist."""
     driver.get(wishlist.url)
     scroll_till_fully_loaded(driver, "endOfListMarker")
 
-    # extract_wishlist_items(driver, items, wishlist)
     elmts = driver.find_elements(
         By.XPATH, "//ul[@id='g-items']//li[contains(@class, 'g-item-sortable')]"
     )
@@ -148,7 +192,8 @@ def get_items_from_wishlist(driver, items, wishlist):
             items.append(item)
 
 
-def get_all_wishlist_items(driver, items, url):
+def get_all_wishlist_items(driver, items, url, wishlist=None):
+    """Entry point for getting items from all wishlists."""
     url = urllib.parse.urljoin(url, "/hz/wishlist/ls")
 
     driver.get(url)
@@ -163,6 +208,10 @@ def get_all_wishlist_items(driver, items, url):
         name = link.find_elements(
             By.XPATH, ".//span[starts-with(@id, 'wl-list-entry-title-')]"
         )[0].text
+
+        if wishlist and wishlist not in url:
+            continue
+
         wishlists.append(Wishlist(sanitize_url(url), name))
 
     for wishlist in wishlists:

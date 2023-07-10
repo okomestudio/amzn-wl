@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def dump_wishlist_items(region, dump, headless):
+def dump_wishlist_items(region, dump, wishlist, headless):
     """Dump items from all wishlists to JSONL."""
     landing_urls = {
         "jp": "https://www.amazon.co.jp/?language=ja_JP",
@@ -24,7 +24,7 @@ def dump_wishlist_items(region, dump, headless):
     items = []
     try:
         signin(driver, url)
-        get_all_wishlist_items(driver, items, url)
+        get_all_wishlist_items(driver, items, url, wishlist)
 
     except Exception as exc:
         logger.exception(exc)
@@ -54,6 +54,7 @@ def main():  # noqa
         default="dump.jsonl",
         help="output dump JSONL file (default: 'dump.jsonl')",
     )
+    p.add_argument("--wishlist", "-l", type=str, help="wishlist key")
     p.add_argument("--headless", action=BooleanOptionalAction, help="use headless mode")
 
     args = p.parse_args()
