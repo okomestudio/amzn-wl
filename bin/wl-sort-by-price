@@ -4,5 +4,5 @@
 cat "$@" \
     | jq -s 'sort_by(.effective_price.value | tonumber)' \
     | jq -c 'map(select(.byline | contains("Kindle")))' \
-    | jq '.[] | [.effective_price.value, .title[0:20], .url, .wishlist.url, .price_drop.original_price.value ]' \
+    | jq '.[] | [.effective_price.value, (.title + " " * 40)[0:39], .url, .wishlist.url, .price_drop.original_price.value ]' \
     | jq -r '@tsv'
