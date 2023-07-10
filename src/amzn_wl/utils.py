@@ -61,6 +61,22 @@ def get(elmt, xpath, resource=None):
         raise ValueError("`resource` must be str or callable")
 
 
+def gets(elmt, xpath, resource=None) -> list | None:
+    """Get elements."""
+    elmts = elmt.find_elements(By.XPATH, xpath)
+    if not elmts:
+        return
+
+    if resource is None:
+        return elmts
+    elif isinstance(resource, str):
+        return [getattr(elmt, resource) for elmt in elmts]
+    elif callable(resource):
+        return [resource(elmt) for elmt in elmts]
+    else:
+        raise ValueError("`resource` must be str or callable")
+
+
 @contextlib.contextmanager
 def switch_locale(groups, loc):
     current_locale = ".".join(locale.getlocale())
