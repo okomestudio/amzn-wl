@@ -32,9 +32,10 @@ def dump_wishlist_items(region, dump, wishlist, headless):
             time.sleep(10)
 
     finally:
-        with open(dump, "a") as f:
-            for item in items:
-                f.write(item.to_json(ensure_ascii=False) + "\n")
+        if items:
+            with open(dump, "a") as f:
+                for item in items:
+                    f.write(item.to_json(ensure_ascii=False) + "\n")
 
 
 def main():  # noqa
