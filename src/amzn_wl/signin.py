@@ -1,4 +1,6 @@
 """Sign-in steps."""
+
+import logging
 import os
 from getpass import getpass
 
@@ -6,6 +8,8 @@ from selenium.common import exceptions
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
+
+logger = logging.getLogger(__name__)
 
 
 def signin(driver, url: str, max_wait: float = 10):
@@ -20,6 +24,7 @@ def signin(driver, url: str, max_wait: float = 10):
                 EC.presence_of_element_located((By.ID, "nav-link-accountList"))
             )
         except exceptions.TimeoutException:
+            logger.warning("Cannot find 'Account & Login' section. Retrying...")
             continue
         else:
             break
