@@ -23,6 +23,7 @@ classifiers = [
 dependencies = [
     "dataclasses-json",
     "selenium==4.12.0",
+    "selenium-stealth==1.0.6",
 ]
 
 [project.optional-dependencies]

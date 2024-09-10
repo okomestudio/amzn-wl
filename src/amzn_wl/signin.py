@@ -12,13 +12,14 @@ from selenium.webdriver.support.wait import WebDriverWait
 logger = logging.getLogger(__name__)
 
 
-def signin(driver, url: str, max_wait: float = 10):
+def signin(driver, url: str, max_wait: float = 10, max_retry: int = 1):
     """Sign in from given landing URL."""
     username = os.environ.get("AMZN_USERNAME") or input("Enter in your username: ")
     password = os.environ.get("AMZN_PASSWORD") or getpass("Enter in your password: ")
 
-    for _ in range(3):
+    for _ in range(max_retry):
         driver.get(url)
+        elmt = None
         try:
             elmt = WebDriverWait(driver, max_wait).until(
                 EC.presence_of_element_located((By.ID, "nav-link-accountList"))
@@ -28,6 +29,10 @@ def signin(driver, url: str, max_wait: float = 10):
             continue
         else:
             break
+
+    if not elmt:
+        print(driver.page_source)
+        raise RuntimeError("Signin failed")
 
     elmt.find_elements(By.XPATH, "./span")[0].click()
 
