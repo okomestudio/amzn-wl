@@ -5,9 +5,10 @@ Revises: 2f172f90298b
 Create Date: 2023-07-20 23:55:12.723186
 
 """
-from alembic import op
+
 import sqlalchemy as sa
 
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "d10c8eddc0cf"
@@ -16,7 +17,7 @@ branch_labels = None
 depends_on = None
 
 
-sql_create_trigger = """
+sql_create_trigger = """-- sql
 CREATE TRIGGER IF NOT EXISTS
     wishlist_update_updated
 AFTER UPDATE ON wishlist
@@ -27,7 +28,7 @@ BEGIN
 END;
 """
 
-sql_drop_trigger = """
+sql_drop_trigger = """-- sql
 DROP TRIGGER IF EXISTS wishlist_update_updated;
 """
 

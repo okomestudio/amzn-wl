@@ -5,6 +5,7 @@ Revises: 8981a7eed573
 Create Date: 2023-07-20 18:56:24.997189
 
 """
+
 import sqlalchemy as sa
 
 from alembic import op
@@ -16,7 +17,7 @@ branch_labels = None
 depends_on = None
 
 
-sql_create_trigger = """
+sql_create_trigger = """-- sql
 CREATE TRIGGER IF NOT EXISTS
     price_update_updated
 AFTER UPDATE ON price
@@ -27,7 +28,7 @@ BEGIN
 END;
 """
 
-sql_drop_trigger = """
+sql_drop_trigger = """-- sql
 DROP TRIGGER IF EXISTS price_update_updated;
 """
 

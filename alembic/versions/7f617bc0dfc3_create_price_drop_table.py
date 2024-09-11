@@ -5,9 +5,10 @@ Revises: 09a61aaf486d
 Create Date: 2023-07-21 00:21:23.637352
 
 """
-from alembic import op
+
 import sqlalchemy as sa
 
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "7f617bc0dfc3"
@@ -16,7 +17,7 @@ branch_labels = None
 depends_on = None
 
 
-sql_create_trigger = """
+sql_create_trigger = """-- sql
 CREATE TRIGGER IF NOT EXISTS
     price_drop_update_updated
 AFTER UPDATE ON price_drop
@@ -27,7 +28,7 @@ BEGIN
 END;
 """
 
-sql_drop_trigger = """
+sql_drop_trigger = """-- sql
 DROP TRIGGER IF EXISTS price_drop_update_updated;
 """
 

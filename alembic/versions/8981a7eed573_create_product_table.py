@@ -5,7 +5,9 @@ Revises:
 Create Date: 2023-07-20 17:53:03.037696
 
 """
+
 import sqlalchemy as sa
+
 from alembic import op
 
 # revision identifiers, used by Alembic.
@@ -15,7 +17,7 @@ branch_labels = None
 depends_on = None
 
 
-sql_create_trigger = """
+sql_create_trigger = """-- sql
 CREATE TRIGGER IF NOT EXISTS
     product_update_updated
 AFTER UPDATE ON product
@@ -26,7 +28,7 @@ BEGIN
 END;
 """
 
-sql_drop_trigger = """
+sql_drop_trigger = """-- sql
 DROP TRIGGER IF EXISTS product_update_updated;
 """
 
