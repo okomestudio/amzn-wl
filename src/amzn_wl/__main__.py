@@ -4,8 +4,8 @@ import logging
 from argparse import ArgumentParser, BooleanOptionalAction
 
 from .drivers import create_driver
+from .entities.wishlists import WishlistItem, get_all_wishlist_items
 from .signin import signin
-from .wishlists import Product, get_all_wishlist_items
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -23,7 +23,7 @@ def dump_wishlist_products(
 
     driver = create_driver(headless=headless)
 
-    items: list[Product] = []
+    items: list[WishlistItem] = []
     try:
         signin(driver, url)
         items = get_all_wishlist_items(driver, url, wishlist)

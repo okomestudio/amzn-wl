@@ -12,10 +12,10 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
-from . import primitives
-from .actions import scroll_till_fully_loaded
-from .entities import loyalties, price_drops, prices, products
-from .utils import get, gets, new_window, sanitize_url
+from .. import primitives
+from ..actions import scroll_till_fully_loaded
+from ..utils import get, gets, new_window, sanitize_url
+from . import loyalties, price_drops, prices, products
 
 logger = logging.getLogger(__name__)
 
