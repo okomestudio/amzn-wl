@@ -23,7 +23,7 @@ AFTER UPDATE ON product
 BEGIN
     UPDATE product
     SET updated = DATETIME('NOW')
-    WHERE product_id = NEW.product_id;
+    WHERE asin = NEW.asin;
 END;
 """
 

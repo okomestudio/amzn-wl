@@ -10,6 +10,7 @@ ini_path = pathlib.Path(".amzn-wl.ini")
 config = configparser.ConfigParser()
 
 # Set default values
+config["sqlite"] = {"database": "amzn-wl.db"}
 config["driver"] = {
     "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.53 Safari/537.36",
     "languages": "en-US en",
