@@ -197,6 +197,6 @@ def get_all_wishlist_items(
 
     items = []
     for wishlist in wishlists:
-        items.extend(get_wishlist_items(driver, items, wishlist))
+        items.extend(get_wishlist_items(driver, wishlist))
 
     return items
