@@ -1,4 +1,4 @@
-"""Browsing actions."""
+"""Selenium utilities."""
 
 import time
 
