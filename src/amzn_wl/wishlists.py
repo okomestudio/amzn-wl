@@ -18,6 +18,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from . import primitives
 from .actions import scroll_till_fully_loaded
 from .entities import products
+from .entities.price_drops import PriceDrop
 from .utils import get, gets, new_window, sanitize_url
 
 logger = logging.getLogger(__name__)
@@ -75,16 +76,6 @@ class Price(products.Price):
             + (price_fraction if price_fraction is not None else "")
         )
         return price
-
-
-@dataclass_json
-@dataclass
-class PriceDrop:
-    """Price drop info."""
-
-    value: Decimal = None
-    percentage: primitives.Percentage = None
-    original_price: products.Price = None
 
 
 @dataclass_json
