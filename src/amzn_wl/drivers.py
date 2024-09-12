@@ -3,6 +3,8 @@
 from selenium import webdriver
 from selenium_stealth import stealth
 
+from .configs import config
+
 
 def create_driver(headless: bool = True) -> webdriver.Chrome:
     """Create a webdriver."""
@@ -14,16 +16,17 @@ def create_driver(headless: bool = True) -> webdriver.Chrome:
     options.add_experimental_option("useAutomationExtension", False)
 
     driver = webdriver.Chrome(options=options)
+    driver_config = config["driver"] if "driver" in config else {}
 
     stealth(
         driver,
-        user_agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",  # noqa
-        languages=["en-US", "en"],
-        vendor="Google Inc.",
-        platform="Linux",
-        webgl_vendor="Intel Inc.",
-        renderer="Intel Iris OpenGL Engine",
-        fix_hairline=True,
+        user_agent=driver_config["user_agent"],
+        languages=driver_config["languages"].split(),
+        vendor=driver_config["vendor"],
+        platform=driver_config["platform"],
+        webgl_vendor=driver_config["webgl_vendor"],
+        renderer=driver_config["renderer"],
+        fix_hairline=driver_config.getbool("fix_hairline"),
     )
 
     return driver
