@@ -1,18 +1,19 @@
 """Amazon Wishlist dumper."""
 
 import logging
-import time
 from argparse import ArgumentParser, BooleanOptionalAction
 
 from .drivers import create_driver
 from .signin import signin
-from .wishlists import Product, get_all_wishlist_products
+from .wishlists import Product, get_all_wishlist_items
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def dump_wishlist_products(region: str, dump: str, wishlist: str, headless: bool) -> None:
+def dump_wishlist_products(
+    region: str, dump: str, wishlist: str, headless: bool
+) -> None:
     """Dump items from all wishlists to JSONL."""
     landing_urls = {
         "jp": "https://www.amazon.co.jp/?language=ja_JP",
