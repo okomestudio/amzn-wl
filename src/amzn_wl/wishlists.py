@@ -16,6 +16,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
 from . import primitives, products
+from .actions import scroll_till_fully_loaded
 from .utils import get, gets, new_window, sanitize_url
 
 logger = logging.getLogger(__name__)
@@ -165,24 +166,6 @@ def extract_wishlist_product(
     )
     logger.info(item.to_json(ensure_ascii=False, indent=4))
     return item
-
-
-def scroll_till_fully_loaded(
-    driver: webdriver.Chrome, stop_condition: str, max_try: int = 40, wait: int = 1
-):
-    """Scroll down a wishlist page till the end."""
-    for _ in range(max_try):
-        try:
-            WebDriverWait(driver, wait).until(
-                EC.presence_of_element_located((By.ID, stop_condition))
-            )
-        except exceptions.TimeoutException:
-            driver.execute_script("window.scrollTo(0, document.body.scrollHeight / 2);")
-            time.sleep(1)
-            driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-            continue
-        else:
-            break
 
 
 def get_products_from_wishlist(
