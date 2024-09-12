@@ -4,6 +4,7 @@ import logging
 import os
 from getpass import getpass
 
+from selenium import webdriver
 from selenium.common import exceptions
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
@@ -12,7 +13,9 @@ from selenium.webdriver.support.wait import WebDriverWait
 logger = logging.getLogger(__name__)
 
 
-def signin(driver, url: str, max_wait: float = 10, max_retry: int = 1):
+def signin(
+    driver: webdriver.Chrome, url: str, max_wait: float = 10, max_retry: int = 1
+) -> None:
     """Sign in from given landing URL."""
     username = os.environ.get("AMZN_USERNAME") or input("Enter in your username: ")
     password = os.environ.get("AMZN_PASSWORD") or getpass("Enter in your password: ")

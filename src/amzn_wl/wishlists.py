@@ -1,4 +1,5 @@
 """Wishlists."""
+
 import logging
 import time
 import urllib.parse
@@ -6,14 +7,16 @@ from dataclasses import dataclass
 from decimal import Decimal
 
 from dataclasses_json import dataclass_json
+from selenium import webdriver
 from selenium.common import exceptions
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
-from .utils import get, gets, new_window, sanitize_url
 from . import primitives, products
+from .utils import get, gets, new_window, sanitize_url
 
 logger = logging.getLogger(__name__)
 
@@ -100,8 +103,10 @@ class Product(products.Product):
             self.effective_price = self.price
 
 
-def extract_wishlist_item(driver, wishlist, elmt):
-    """Extract item info from wishlist item row."""
+def extract_wishlist_product(
+    driver: webdriver.Chrome, wishlist: Wishlist, elmt: WebElement
+) -> Product:
+    """Extract a product from a wishlist entry."""
     link = get(elmt, ".//a[@title]")
     if not link:
         # Likely "This title is no longer available"
@@ -162,8 +167,10 @@ def extract_wishlist_item(driver, wishlist, elmt):
     return item
 
 
-def scroll_till_fully_loaded(driver, stop_condition, max_try=40, wait=1):
-    """Scroll down in a wishlist page."""
+def scroll_till_fully_loaded(
+    driver: webdriver.Chrome, stop_condition: str, max_try: int = 40, wait: int = 1
+):
+    """Scroll down a wishlist page till the end."""
     for _ in range(max_try):
         try:
             WebDriverWait(driver, wait).until(
@@ -178,21 +185,29 @@ def scroll_till_fully_loaded(driver, stop_condition, max_try=40, wait=1):
             break
 
 
-def get_items_from_wishlist(driver, items, wishlist):
+def get_products_from_wishlist(
+    driver: webdriver.Chrome, wishlist: Wishlist
+) -> list[Product]:
     """Get items from given wishlist."""
     driver.get(wishlist.url)
     scroll_till_fully_loaded(driver, "endOfListMarker")
+
+    items = []
 
     elmts = driver.find_elements(
         By.XPATH, "//ul[@id='g-items']//li[contains(@class, 'g-item-sortable')]"
     )
     for elmt in elmts:
-        item = extract_wishlist_item(driver, wishlist, elmt)
+        item = extract_wishlist_product(driver, wishlist, elmt)
         if item:
             items.append(item)
 
+    return items
 
-def get_all_wishlist_items(driver, items, url, wishlist=None):
+
+def get_all_wishlist_products(
+    driver: webdriver.Chrome, url: str, wishlist: str | None = None
+) -> list[Product]:
     """Entry point for getting items from all wishlists."""
     url = urllib.parse.urljoin(url, "/hz/wishlist/ls")
 
@@ -209,10 +224,14 @@ def get_all_wishlist_items(driver, items, url, wishlist=None):
             By.XPATH, ".//span[starts-with(@id, 'wl-list-entry-title-')]"
         )[0].text
 
+        # If a target wishlist is given, skip other wishlists
         if wishlist and wishlist not in url:
             continue
 
         wishlists.append(Wishlist(sanitize_url(url), name))
 
+    items = []
     for wishlist in wishlists:
-        get_items_from_wishlist(driver, items, wishlist)
+        items.extend(get_products_from_wishlist(driver, items, wishlist))
+
+    return items

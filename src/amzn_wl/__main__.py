@@ -1,17 +1,18 @@
 """Amazon Wishlist dumper."""
+
 import logging
 import time
 from argparse import ArgumentParser, BooleanOptionalAction
 
 from .drivers import create_driver
 from .signin import signin
-from .wishlists import get_all_wishlist_items
+from .wishlists import Product, get_all_wishlist_products
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def dump_wishlist_items(region, dump, wishlist, headless):
+def dump_wishlist_products(region: str, dump: str, wishlist: str, headless: bool) -> None:
     """Dump items from all wishlists to JSONL."""
     landing_urls = {
         "jp": "https://www.amazon.co.jp/?language=ja_JP",
@@ -21,15 +22,13 @@ def dump_wishlist_items(region, dump, wishlist, headless):
 
     driver = create_driver(headless=headless)
 
-    items = []
+    items: list[Product] = []
     try:
         signin(driver, url)
-        get_all_wishlist_items(driver, items, url, wishlist)
+        items = get_all_wishlist_items(driver, url, wishlist)
 
     except Exception as exc:
         logger.exception(exc)
-        while True:
-            time.sleep(10)
 
     finally:
         if items:
@@ -38,7 +37,7 @@ def dump_wishlist_items(region, dump, wishlist, headless):
                     f.write(item.to_json(ensure_ascii=False) + "\n")
 
 
-def main():  # noqa
+def main() -> None:
     p = ArgumentParser(description=__doc__)
     p.add_argument(
         "--region",
@@ -60,7 +59,7 @@ def main():  # noqa
 
     args = p.parse_args()
 
-    dump_wishlist_items(**vars(args))
+    dump_wishlist_products(**vars(args))
 
 
 if __name__ == "__main__":
