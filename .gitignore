@@ -106,6 +106,9 @@ venv.bak/
 # misc.
 tmp/
 
+# ini
+*.ini
+
 # sqlite database
 *.db
 
