@@ -10,7 +10,6 @@ import sqlalchemy as sa
 
 from alembic import op
 
-# revision identifiers, used by Alembic.
 revision = "2f172f90298b"
 down_revision = "8981a7eed573"
 branch_labels = None
@@ -33,10 +32,10 @@ DROP TRIGGER IF EXISTS price_update_updated;
 """
 
 
-def upgrade() -> None:  # noqa
+def upgrade() -> None:
     op.create_table(
         "price",
-        sa.Column("price_id", sa.String(), primary_key=True),
+        sa.Column("price_id", sa.Integer(), primary_key=True),
         sa.Column(
             "created",
             sa.TIMESTAMP,
@@ -50,13 +49,14 @@ def upgrade() -> None:  # noqa
             server_default=sa.text("CURRENT_TIMESTAMP"),
         ),
         sa.Column("deleted", sa.TIMESTAMP, nullable=True),
-        sa.Column("product_id", sa.String(), sa.ForeignKey("product.product_id")),
-        sa.Column("site", sa.String(), nullable=False),
-        sa.Column("data", sa.String(), nullable=False),
+        sa.Column("asin", sa.String(), sa.ForeignKey("product.asin")),
+        sa.Column("hostname", sa.String(), sa.ForeignKey("site.hostname")),
+        sa.Column("value", sa.String(), nullable=False),
+        sa.Column("currency", sa.String(), nullable=False),
     )
     op.execute(sql_create_trigger)
 
 
-def downgrade() -> None:  # noqa
+def downgrade() -> None:
     op.execute(sql_drop_trigger)
     op.drop_table("price")

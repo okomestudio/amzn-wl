@@ -10,7 +10,6 @@ import sqlalchemy as sa
 
 from alembic import op
 
-# revision identifiers, used by Alembic.
 revision = "09a61aaf486d"
 down_revision = "d10c8eddc0cf"
 branch_labels = None
@@ -33,13 +32,13 @@ DROP TRIGGER IF EXISTS product_wishlist_update_updated;
 """
 
 
-def upgrade() -> None:  # noqa
+def upgrade() -> None:
     op.create_table(
         "product_wishlist",
         sa.Column(
-            "product_id",
+            "asin",
             sa.String(),
-            sa.ForeignKey("product.product_id"),
+            sa.ForeignKey("product.asin"),
             primary_key=True,
         ),
         sa.Column(
@@ -65,6 +64,6 @@ def upgrade() -> None:  # noqa
     op.execute(sql_create_trigger)
 
 
-def downgrade() -> None:  # noqa
+def downgrade() -> None:
     op.execute(sql_drop_trigger)
     op.drop_table("product_wishlist")

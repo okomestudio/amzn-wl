@@ -10,9 +10,8 @@ import sqlalchemy as sa
 
 from alembic import op
 
-# revision identifiers, used by Alembic.
 revision = "8981a7eed573"
-down_revision = None
+down_revision = "84f432fe9071"
 branch_labels = None
 depends_on = None
 
@@ -33,10 +32,10 @@ DROP TRIGGER IF EXISTS product_update_updated;
 """
 
 
-def upgrade() -> None:  # noqa
+def upgrade() -> None:
     op.create_table(
         "product",
-        sa.Column("product_id", sa.String(), primary_key=True),
+        sa.Column("asin", sa.String(), primary_key=True),
         sa.Column(
             "created",
             sa.TIMESTAMP,
@@ -56,6 +55,6 @@ def upgrade() -> None:  # noqa
     op.execute(sql_create_trigger)
 
 
-def downgrade() -> None:  # noqa
+def downgrade() -> None:
     op.execute(sql_drop_trigger)
     op.drop_table("product")

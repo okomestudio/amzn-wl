@@ -1,8 +1,8 @@
-"""Create price_drop table.
+"""create site table
 
-Revision ID: 7f617bc0dfc3
-Revises: 09a61aaf486d
-Create Date: 2023-07-21 00:21:23.637352
+Revision ID: 84f432fe9071
+Revises: 7f617bc0dfc3
+Create Date: 2024-09-12 11:02:57.316338
 
 """
 
@@ -10,32 +10,33 @@ import sqlalchemy as sa
 
 from alembic import op
 
-revision = "7f617bc0dfc3"
-down_revision = "09a61aaf486d"
+# revision identifiers, used by Alembic.
+revision = "84f432fe9071"
+down_revision = None
 branch_labels = None
 depends_on = None
 
 
 sql_create_trigger = """-- sql
 CREATE TRIGGER IF NOT EXISTS
-    price_drop_update_updated
-AFTER UPDATE ON price_drop
+    site_update_updated
+AFTER UPDATE ON site
 BEGIN
-    UPDATE price_drop
+    UPDATE site
     SET updated = DATETIME('NOW')
-    WHERE price_drop_id = NEW.price_drop_id;
+    WHERE hostname = NEW.hostname;
 END;
 """
 
 sql_drop_trigger = """-- sql
-DROP TRIGGER IF EXISTS price_drop_update_updated;
+DROP TRIGGER IF EXISTS site_update_updated;
 """
 
 
 def upgrade() -> None:
     op.create_table(
-        "price_drop",
-        sa.Column("price_drop_id", sa.Integer(), primary_key=True),
+        "site",
+        sa.Column("hostname", sa.String(), primary_key=True),
         sa.Column(
             "created",
             sa.TIMESTAMP,
@@ -49,14 +50,10 @@ def upgrade() -> None:
             server_default=sa.text("CURRENT_TIMESTAMP"),
         ),
         sa.Column("deleted", sa.TIMESTAMP, nullable=True),
-        sa.Column("asin", sa.String(), sa.ForeignKey("product.asin")),
-        sa.Column("hostname", sa.String(), sa.ForeignKey("site.hostname")),
-        sa.Column("value", sa.String(), nullable=False),
-        sa.Column("currency", sa.String(), nullable=False),
     )
     op.execute(sql_create_trigger)
 
 
 def downgrade() -> None:
     op.execute(sql_drop_trigger)
-    op.drop_table("price_drop")
+    op.drop_table("site")
