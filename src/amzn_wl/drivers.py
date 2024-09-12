@@ -26,7 +26,7 @@ def create_driver(headless: bool = True) -> webdriver.Chrome:
         platform=driver_config["platform"],
         webgl_vendor=driver_config["webgl_vendor"],
         renderer=driver_config["renderer"],
-        fix_hairline=driver_config.getbool("fix_hairline"),
+        fix_hairline=driver_config.getboolean("fix_hairline"),
     )
 
     return driver
