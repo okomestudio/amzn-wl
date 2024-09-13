@@ -13,8 +13,12 @@ def get_conn():
     conn = sqlite3.connect(database)
     try:
         yield conn
-    finally:
+    except Exception:
+        conn.rollback()
+        raise
+    else:
         conn.commit()
+    finally:
         conn.close()
 
 
