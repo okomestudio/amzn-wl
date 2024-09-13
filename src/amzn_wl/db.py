@@ -4,7 +4,7 @@ import contextlib
 import sqlite3
 
 from .configs import config
-from .entities import products
+from .entities import products, sites, wishlists
 
 
 @contextlib.contextmanager
@@ -57,3 +57,23 @@ def ensure_site(site: sites.Site):
     with get_conn() as conn:
         cur = conn.cursor()
         cur.execute(sql_ensure_site, (site.hostname))
+
+
+sql_ensure_wishlist = """
+INSERT INTO
+  wishlist (wishlist_id, name)
+VALUES
+  (?, ?)
+ON CONFLICT (wishlist_id)
+UPDATE
+SET
+  name = excluded.name
+WHERE
+  name != excluded.name;
+"""
+
+
+def ensure_wishlist(wishlist: wishlists.Wishlist):
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute(sql_ensure_wishlist, (wishlist.wishlist_id, wishlist.name))
