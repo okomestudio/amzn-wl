@@ -22,7 +22,7 @@ def get_conn():
         conn.close()
 
 
-sql_ensure_product = """-- sql
+sql_ensure_product = """
 INSERT INTO
   product (asin, title, byline)
 VALUES
@@ -42,3 +42,18 @@ def ensure_product(product: products.Product):
     with get_conn() as conn:
         cur = conn.cursor()
         cur.execute(sql_ensure_product, (product.asin, product.title, product.byline))
+
+
+sql_ensure_site = """
+INSERT INTO
+  site (hostname)
+VALUES
+  (?)
+ON CONFLICT (hostname) DO NOTHING;
+"""
+
+
+def ensure_site(site: sites.Site):
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute(sql_ensure_site, (site.hostname))
