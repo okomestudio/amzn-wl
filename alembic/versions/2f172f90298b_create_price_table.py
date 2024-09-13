@@ -35,7 +35,7 @@ DROP TRIGGER IF EXISTS price_update_updated;
 def upgrade() -> None:
     op.create_table(
         "price",
-        sa.Column("price_id", sa.Integer(), primary_key=True),
+        sa.Column("price_id", sa.Integer(), primary_key=True, autoincrement="auto"),
         sa.Column(
             "created",
             sa.TIMESTAMP,
