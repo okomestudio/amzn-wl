@@ -23,31 +23,19 @@ def get_conn():
         conn.close()
 
 
-sql_ensure_price = """
+sql_insert_price = """
 INSERT INTO
   price (asin, hostname, value, currency)
 VALUES
   (?, ?, ?, ?)
-ON CONFLICT (price_id) DO
-UPDATE
-SET
-  asin = excluded.asin,
-  hostname = excluded.hostname,
-  value = excluded.value,
-  currency = excluded.currency
-WHERE
-  asin != excluded.asin
-  OR hostname != excluded.hostname
-  OR value != excluded.value
-  OR currency != excluded.currency
 """
 
 
-def ensure_price(price: prices.Price):
+def insert_price(price: prices.Price):
     with get_conn() as conn:
         cur = conn.cursor()
         cur.execute(
-            sql_ensure_price,
+            sql_insert_price,
             (price.asin, price.hostname, str(price.value), price.currency),
         )
 
@@ -86,7 +74,7 @@ ON CONFLICT (hostname) DO NOTHING;
 def ensure_site(site: sites.Site):
     with get_conn() as conn:
         cur = conn.cursor()
-        cur.execute(sql_ensure_site, (site.hostname))
+        cur.execute(sql_ensure_site, (site.hostname,))
 
 
 sql_ensure_wishlist = """

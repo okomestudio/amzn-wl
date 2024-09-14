@@ -9,6 +9,7 @@ from amzn_wl import db
 from amzn_wl.configs import config
 from amzn_wl.entities.prices import Price
 from amzn_wl.entities.products import Product
+from amzn_wl.entities.sites import Site
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -51,18 +52,41 @@ def product_table():
     delete_table("product")
 
 
-class TestEnsurePrice:
+class TestInsertPrice:
     def test_insert(self, price_table):
-        asin = "foo"
-        hostname = "bar"
+        product = Product(asin="foo", title="bar", byline="baz")
+        site = Site(hostname="en")
         value = Decimal("1.99")
         currency = "$"
-        price = Price(asin=asin, hostname=hostname, value=value, currency=currency)
+        price = Price(
+            asin=product.asin, hostname=site.hostname, value=value, currency=currency
+        )
+        db.ensure_product(product)
+        db.ensure_site(site)
 
-        db.ensure_price(price)
+        db.insert_price(price)
 
         rows = select_fetch_all("SELECT asin, hostname, value, currency FROM price")
-        assert rows == [(asin, hostname, str(value), currency)]
+        assert rows == [(product.asin, site.hostname, str(value), currency)]
+
+    def test_insert_multiple(self, price_table):
+        product = Product(asin="foo", title="bar", byline="baz")
+        site = Site(hostname="en")
+        value = Decimal("1.99")
+        currency = "$"
+        price = Price(
+            asin=product.asin, hostname=site.hostname, value=value, currency=currency
+        )
+        db.ensure_product(product)
+        db.ensure_site(site)
+
+        db.insert_price(price)
+        db.insert_price(price)
+
+        rows = select_fetch_all(
+            "SELECT price_id, asin, hostname, value, currency FROM price"
+        )
+        assert len(rows) == 2
 
 
 class TestEnsureProduct:
