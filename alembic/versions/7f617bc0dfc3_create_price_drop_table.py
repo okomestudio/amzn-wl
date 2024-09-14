@@ -16,18 +16,18 @@ branch_labels = None
 depends_on = None
 
 
-sql_create_trigger = """-- sql
+sql_create_trigger = """
 CREATE TRIGGER IF NOT EXISTS
     price_drop_update_updated
 AFTER UPDATE ON price_drop
 BEGIN
     UPDATE price_drop
-    SET updated = DATETIME('NOW')
+    SET updated = DATETIME('now')
     WHERE price_drop_id = NEW.price_drop_id;
 END;
 """
 
-sql_drop_trigger = """-- sql
+sql_drop_trigger = """
 DROP TRIGGER IF EXISTS price_drop_update_updated;
 """
 
@@ -35,7 +35,9 @@ DROP TRIGGER IF EXISTS price_drop_update_updated;
 def upgrade() -> None:
     op.create_table(
         "price_drop",
-        sa.Column("price_drop_id", sa.Integer(), primary_key=True),
+        sa.Column(
+            "price_drop_id", sa.Integer(), primary_key=True, autoincrement="auto"
+        ),
         sa.Column(
             "created",
             sa.TIMESTAMP,
@@ -51,8 +53,8 @@ def upgrade() -> None:
         sa.Column("deleted", sa.TIMESTAMP, nullable=True),
         sa.Column("asin", sa.String(), sa.ForeignKey("product.asin")),
         sa.Column("hostname", sa.String(), sa.ForeignKey("site.hostname")),
-        sa.Column("value", sa.String(), nullable=False),
-        sa.Column("currency", sa.String(), nullable=False),
+        sa.Column("perc_value", sa.String(), nullable=False),
+        sa.Column("perc_unit", sa.String(), nullable=False),
     )
     op.execute(sql_create_trigger)
 

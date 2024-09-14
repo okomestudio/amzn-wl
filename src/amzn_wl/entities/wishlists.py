@@ -15,7 +15,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from .. import primitives
 from ..utils import get, gets, new_window, sanitize_url
 from ..utils.selenium import scroll_till_fully_loaded
-from . import loyalties, price_drops, prices, products
+from . import loyalties, prices, products
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +37,7 @@ class WishlistItem:
 
     product: products.Product
     price: prices.Price
-    price_drop: price_drops.PriceDrop
+    price_drop: prices.PriceDrop
     wishlist: Wishlist
     loyalty: loyalties.Loyalty
     effective_price: prices.Price

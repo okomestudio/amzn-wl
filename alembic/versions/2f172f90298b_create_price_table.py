@@ -16,18 +16,18 @@ branch_labels = None
 depends_on = None
 
 
-sql_create_trigger = """-- sql
+sql_create_trigger = """
 CREATE TRIGGER IF NOT EXISTS
     price_update_updated
 AFTER UPDATE ON price
 BEGIN
     UPDATE price
-    SET updated = DATETIME('NOW')
+    SET updated = DATETIME('now')
     WHERE price_id = NEW.price_id;
 END;
 """
 
-sql_drop_trigger = """-- sql
+sql_drop_trigger = """
 DROP TRIGGER IF EXISTS price_update_updated;
 """
 

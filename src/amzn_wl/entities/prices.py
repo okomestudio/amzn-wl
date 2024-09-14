@@ -6,6 +6,7 @@ from decimal import Decimal
 
 from dataclasses_json import dataclass_json
 
+from .. import primitives
 from ..utils import switch_locale
 
 logger = logging.getLogger(__name__)
@@ -55,3 +56,15 @@ class Price:
             value = locale.delocalize(value)
 
         return cls(value, symbol)
+
+
+@dataclass_json
+@dataclass
+class PriceDrop:
+    """Price drop info."""
+
+    value: Decimal = None
+    percentage: primitives.Percentage = None
+    original_price: Price = None
+    asin: str = None
+    hostname: str = None

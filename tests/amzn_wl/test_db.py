@@ -5,9 +5,9 @@ import pytest
 
 from alembic.command import upgrade
 from alembic.config import Config as AlembicCfg
-from amzn_wl import db
+from amzn_wl import db, primitives
 from amzn_wl.configs import config
-from amzn_wl.entities.prices import Price
+from amzn_wl.entities.prices import Price, PriceDrop
 from amzn_wl.entities.products import Product
 from amzn_wl.entities.sites import Site
 from amzn_wl.entities.wishlists import Wishlist
@@ -45,6 +45,12 @@ def delete_table(table: str) -> None:
 def price_table():
     yield
     delete_table("price")
+
+
+@pytest.fixture(scope="function")
+def price_drop_table():
+    yield
+    delete_table("price_drop")
 
 
 @pytest.fixture(scope="function")
@@ -106,6 +112,49 @@ class TestInsertPrice:
 
         rows = select_fetch_all(
             "SELECT price_id, asin, hostname, value, currency FROM price"
+        )
+        assert len(rows) == 2
+
+
+@pytest.mark.skip
+class TestInsertPriceDrop:
+    def test_insert(self, product_table, site_table, price_drop_table):
+        product = Product(asin="foo", title="bar", byline="baz")
+        site = Site(hostname="en")
+        price_drop = PriceDrop(
+            asin=product.asin,
+            hostname=site.hostname,
+            percentage=primitives.Percentage(Decimal("15"), "%"),
+        )
+        db.ensure_product(product)
+        db.ensure_site(site)
+
+        db.insert_price_drop(price_drop)
+
+        rows = select_fetch_all(
+            "SELECT asin, hostname, value, currency FROM price_drop"
+        )
+        assert rows == [
+            (product.asin, site.hostname, str(price_drop.value), price_drop.unit)
+        ]
+
+    def test_insert_multiple(self, product_table, site_table, price_drop_table):
+        product = Product(asin="foo", title="bar", byline="baz")
+        site = Site(hostname="en")
+        price_drop = PriceDrop(
+            asin=product.asin,
+            hostname=site.hostname,
+            value=Decimal("1.99"),
+            currency="$",
+        )
+        db.ensure_product(product)
+        db.ensure_site(site)
+
+        db.insert_price(price_drop)
+        db.insert_price(price_drop)
+
+        rows = select_fetch_all(
+            "SELECT price_id, asin, hostname, value, currency FROM price_drop"
         )
         assert len(rows) == 2
 

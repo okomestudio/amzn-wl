@@ -40,6 +40,28 @@ def insert_price(price: prices.Price):
         )
 
 
+sql_insert_price_drop = """
+INSERT INTO
+  price_drop (asin, hostname, value, currency)
+VALUES
+  (?, ?, ?, ?)
+"""
+
+
+def insert_price_drop(price_drop: prices.PriceDrop):
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute(
+            sql_insert_price,
+            (
+                price_drop.asin,
+                price_drop.hostname,
+                str(price_drop.value),
+                price_drop.currency,
+            ),
+        )
+
+
 sql_ensure_product = """
 INSERT INTO
   product (asin, title, byline)
