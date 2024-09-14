@@ -1,4 +1,5 @@
 import pathlib
+from decimal import Decimal
 
 import pytest
 
@@ -6,6 +7,7 @@ from alembic.command import upgrade
 from alembic.config import Config as AlembicCfg
 from amzn_wl import db
 from amzn_wl.configs import config
+from amzn_wl.entities.prices import Price
 from amzn_wl.entities.products import Product
 
 
@@ -38,9 +40,29 @@ def delete_table(table: str) -> None:
 
 
 @pytest.fixture(scope="function")
+def price_table():
+    yield
+    delete_table("price")
+
+
+@pytest.fixture(scope="function")
 def product_table():
     yield
     delete_table("product")
+
+
+class TestEnsurePrice:
+    def test_insert(self, price_table):
+        asin = "foo"
+        hostname = "bar"
+        value = Decimal("1.99")
+        currency = "$"
+        price = Price(asin=asin, hostname=hostname, value=value, currency=currency)
+
+        db.ensure_price(price)
+
+        rows = select_fetch_all("SELECT asin, hostname, value, currency FROM price")
+        assert rows == [(asin, hostname, str(value), currency)]
 
 
 class TestEnsureProduct:
