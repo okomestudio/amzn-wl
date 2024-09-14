@@ -62,6 +62,24 @@ def ensure_product(product: products.Product):
         cur.execute(sql_ensure_product, (product.asin, product.title, product.byline))
 
 
+sql_ensure_product_wishlist = """
+INSERT INTO
+  product_wishlist (asin, wishlist_id)
+VALUES
+  (?, ?)
+ON CONFLICT (asin, wishlist_id) DO
+UPDATE
+SET
+  updated = DATETIME('now');
+"""
+
+
+def ensure_product_wishlist(product: products.Product, wishlist: wishlists.Wishlist):
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute(sql_ensure_product_wishlist, (product.asin, wishlist.wishlist_id))
+
+
 sql_ensure_site = """
 INSERT INTO
   site (hostname)
@@ -82,7 +100,7 @@ INSERT INTO
   wishlist (wishlist_id, name)
 VALUES
   (?, ?)
-ON CONFLICT (wishlist_id)
+ON CONFLICT (wishlist_id) DO
 UPDATE
 SET
   name = excluded.name

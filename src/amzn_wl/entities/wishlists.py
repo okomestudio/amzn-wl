@@ -27,6 +27,7 @@ class Wishlist:
 
     url: str
     name: str
+    wishlist_id: str = None
 
 
 @dataclass_json
