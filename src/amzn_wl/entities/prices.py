@@ -18,6 +18,8 @@ class Price:
 
     value: Decimal
     currency: str
+    asin: str = None
+    hostname: str = None
 
     def __post_init__(self):
         self.value = Decimal(self.value)
