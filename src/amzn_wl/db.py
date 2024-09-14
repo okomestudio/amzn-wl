@@ -11,6 +11,7 @@ from .entities import prices, products, sites, wishlists
 def get_conn():
     database = config["sqlite"]["database"]
     conn = sqlite3.connect(database)
+    conn.execute("PRAGMA foreign_keys = 1")
     try:
         yield conn
     except Exception:
