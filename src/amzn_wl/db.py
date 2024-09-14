@@ -26,7 +26,7 @@ sql_ensure_price = """
 INSERT INTO
   price (asin, hostname, value, currency)
 VALUES
-  (?, ?, ?)
+  (?, ?, ?, ?)
 ON CONFLICT (price_id) DO
 UPDATE
 SET
@@ -46,7 +46,8 @@ def ensure_price(price: prices.Price):
     with get_conn() as conn:
         cur = conn.cursor()
         cur.execute(
-            sql_ensure_price, (price.asin, price.hostname, price.value, price.currency)
+            sql_ensure_price,
+            (price.asin, price.hostname, str(price.value), price.currency),
         )
 
 
