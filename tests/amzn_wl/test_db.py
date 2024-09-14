@@ -64,6 +64,7 @@ def site_table():
     yield
     delete_table("site")
 
+
 @pytest.fixture(scope="function")
 def wishlist_table():
     yield
@@ -74,10 +75,11 @@ class TestInsertPrice:
     def test_insert(self, product_table, site_table, price_table):
         product = Product(asin="foo", title="bar", byline="baz")
         site = Site(hostname="en")
-        value = Decimal("1.99")
-        currency = "$"
         price = Price(
-            asin=product.asin, hostname=site.hostname, value=value, currency=currency
+            asin=product.asin,
+            hostname=site.hostname,
+            value=Decimal("1.99"),
+            currency="$",
         )
         db.ensure_product(product)
         db.ensure_site(site)
@@ -85,15 +87,16 @@ class TestInsertPrice:
         db.insert_price(price)
 
         rows = select_fetch_all("SELECT asin, hostname, value, currency FROM price")
-        assert rows == [(product.asin, site.hostname, str(value), currency)]
+        assert rows == [(product.asin, site.hostname, str(price.value), price.currency)]
 
     def test_insert_multiple(self, product_table, site_table, price_table):
         product = Product(asin="foo", title="bar", byline="baz")
         site = Site(hostname="en")
-        value = Decimal("1.99")
-        currency = "$"
         price = Price(
-            asin=product.asin, hostname=site.hostname, value=value, currency=currency
+            asin=product.asin,
+            hostname=site.hostname,
+            value=Decimal("1.99"),
+            currency="$",
         )
         db.ensure_product(product)
         db.ensure_site(site)
@@ -133,11 +136,27 @@ class TestEnsureProduct:
 class TestEnsureProductWishlist:
     def test_insert(self, product_table, wishlist_table, product_wishlist_table):
         product = Product(asin="foo", title="bar", byline="baz")
-        wishlist = Wishlist(wishlist_id='qux', url='https://foo.bar',name='wl')
+        wishlist = Wishlist(wishlist_id="qux", url="https://foo.bar", name="wl")
         db.ensure_product(product)
         db.ensure_wishlist(wishlist)
 
         db.ensure_product_wishlist(product, wishlist)
 
-        rows = select_fetch_all("SELECT * FROM product_wishlist")
-        assert len(rows) == 1
+        rows = select_fetch_all("SELECT asin, wishlist_id FROM product_wishlist")
+        assert rows == [(product.asin, wishlist.wishlist_id)]
+
+    def test_insert_repeat(self, product_table, wishlist_table, product_wishlist_table):
+        product = Product(asin="foo", title="bar", byline="baz")
+        wishlist = Wishlist(wishlist_id="qux", url="https://foo.bar", name="wl")
+        db.ensure_product(product)
+        db.ensure_wishlist(wishlist)
+
+        db.ensure_product_wishlist(product, wishlist)
+        rows_1 = select_fetch_all("SELECT updated FROM product_wishlist")
+        # time.sleep(75)  # let's not test updated field refresh
+        db.ensure_product_wishlist(product, wishlist)
+        rows_2 = select_fetch_all("SELECT updated FROM product_wishlist")
+
+        assert len(rows_1) == 1
+        assert len(rows_2) == 1
+        # assert rows_1[0][0] < rows_2[0][0]

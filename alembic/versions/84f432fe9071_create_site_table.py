@@ -10,25 +10,25 @@ import sqlalchemy as sa
 
 from alembic import op
 
-# revision identifiers, used by Alembic.
+
 revision = "84f432fe9071"
 down_revision = None
 branch_labels = None
 depends_on = None
 
 
-sql_create_trigger = """-- sql
+sql_create_trigger = """
 CREATE TRIGGER IF NOT EXISTS
     site_update_updated
 AFTER UPDATE ON site
 BEGIN
     UPDATE site
-    SET updated = DATETIME('NOW')
+    SET updated = DATETIME('now')
     WHERE hostname = NEW.hostname;
 END;
 """
 
-sql_drop_trigger = """-- sql
+sql_drop_trigger = """
 DROP TRIGGER IF EXISTS site_update_updated;
 """
 

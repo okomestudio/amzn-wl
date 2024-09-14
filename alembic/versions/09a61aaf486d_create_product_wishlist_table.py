@@ -16,18 +16,19 @@ branch_labels = None
 depends_on = None
 
 
-sql_create_trigger = """-- sql
+sql_create_trigger = """
 CREATE TRIGGER IF NOT EXISTS
     product_wishlist_update_updated
 AFTER UPDATE ON product_wishlist
 BEGIN
     UPDATE product_wishlist
-    SET updated = DATETIME('NOW')
-    WHERE wishlist_id = NEW.wishlist_id;
+    SET updated = datetime('now')
+    WHERE asin = NEW.asin
+      AND wishlist_id = NEW.wishlist_id ;
 END;
 """
 
-sql_drop_trigger = """-- sql
+sql_drop_trigger = """
 DROP TRIGGER IF EXISTS product_wishlist_update_updated;
 """
 
@@ -60,6 +61,7 @@ def upgrade() -> None:
             server_default=sa.text("CURRENT_TIMESTAMP"),
         ),
         sa.Column("deleted", sa.TIMESTAMP, nullable=True),
+        sa.PrimaryKeyConstraint("asin", "wishlist_id", name="product_wishlist_pk"),
     )
     op.execute(sql_create_trigger)
 

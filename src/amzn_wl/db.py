@@ -70,7 +70,9 @@ VALUES
 ON CONFLICT (asin, wishlist_id) DO
 UPDATE
 SET
-  updated = DATETIME('now');
+  asin = excluded.asin,
+  wishlist_id = excluded.wishlist_id,
+  updated = DATETIME('now')
 """
 
 
