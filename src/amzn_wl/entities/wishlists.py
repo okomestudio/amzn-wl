@@ -1,6 +1,9 @@
 """Wishlists."""
 
+from __future__ import annotations
+
 import logging
+import re
 import urllib.parse
 from dataclasses import dataclass
 
@@ -20,14 +23,31 @@ from . import loyalties, prices, products
 logger = logging.getLogger(__name__)
 
 
+def extract_wishlist_id_from_url(url: str) -> str:
+    m = re.match(r"https?://.+/wishlist/ls/(\w+)/?$", url)
+    wishlist_id = m.group(1) if m else None
+    return wishlist_id
+
+
 @dataclass_json
 @dataclass
 class Wishlist:
     """Wishlist."""
 
-    url: str
+    wishlist_id: str
     name: str
-    wishlist_id: str = None
+    url: str = None
+
+    @classmethod
+    def parse_from_link_element(cls, elmt) -> Wishlist:
+        url = elmt.get_attribute("href")
+        name = elmt.find_elements(
+            By.XPATH, ".//span[starts-with(@id, 'wl-list-entry-title-')]"
+        )[0].text
+        url = sanitize_url(url)
+        wishlist_id = extract_wishlist_id_from_url(url)
+        assert wishlist_id is not None
+        return cls(wishlist_id, name, url)
 
 
 @dataclass_json
@@ -126,7 +146,7 @@ def extract_wishlist_item(
         price_drop_original_price = prices.Price.parse(
             get(price_drop_elmt, ".//span[3]", "text")
         )
-        price_drop = price_drops.PriceDrop(
+        price_drop = prices.PriceDrop(
             price_drop_value, price_drop_percentage, price_drop_original_price
         )
     else:
@@ -185,16 +205,8 @@ def get_all_wishlist_items(
 
     wishlists = []
     for link in elmt.find_elements(By.XPATH, './/div[contains(@class, "wl-list")]//a'):
-        url = link.get_attribute("href")
-        name = link.find_elements(
-            By.XPATH, ".//span[starts-with(@id, 'wl-list-entry-title-')]"
-        )[0].text
-
-        # If a target wishlist is given, skip other wishlists
-        if wishlist and wishlist not in url:
-            continue
-
-        wishlists.append(Wishlist(sanitize_url(url), name))
+        wishlist = Wishlist.parse_from_link_element(link)
+        wishlists.append(wishlist)
 
     items = []
     for wishlist in wishlists:
