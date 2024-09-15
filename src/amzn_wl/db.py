@@ -2,15 +2,24 @@
 
 import contextlib
 import sqlite3
+from decimal import Decimal
 
 from .configs import config
-from .entities import prices, products, sites, wishlists
+from .entities.loyalty import Loyalty
+from .entities.price_drop import PriceDrop
+from .entities.product import Product
+from .entities.product_price import ProductPrice
+from .entities.site import Site
+from .entities.wishlist import Wishlist
+
+sqlite3.register_adapter(Decimal, lambda d: str(d))
+sqlite3.register_converter("decimal", lambda s: Decimal(s.decode()))
 
 
 @contextlib.contextmanager
 def get_conn():
     database = config["sqlite"]["database"]
-    conn = sqlite3.connect(database)
+    conn = sqlite3.connect(database, detect_types=sqlite3.PARSE_DECLTYPES)
     conn.execute("PRAGMA foreign_keys = 1")
     try:
         yield conn
@@ -23,41 +32,79 @@ def get_conn():
         conn.close()
 
 
-sql_insert_price = """
+sql_insert_product_price = """
 INSERT INTO
-  price (asin, hostname, value, currency)
+  product_price (asin, hostname, value, currency)
 VALUES
   (?, ?, ?, ?)
+RETURNING product_price_id
 """
 
 
-def insert_price(price: prices.Price):
+def insert_product_price(product_price: ProductPrice) -> int:
     with get_conn() as conn:
         cur = conn.cursor()
         cur.execute(
-            sql_insert_price,
-            (price.asin, price.hostname, str(price.value), price.currency),
+            sql_insert_product_price,
+            (
+                product_price.product.asin,
+                product_price.site.hostname,
+                product_price.price.value,
+                product_price.price.currency,
+            ),
+        )
+        row = cur.fetchone()
+        product_price_id = row[0]
+
+    if product_price.price_drop:
+        insert_product_price_drop(product_price_id, product_price.price_drop)
+    if product_price.loyalty:
+        insert_product_price_loyalty(product_price_id, product_price.loyalty)
+
+    return product_price_id
+
+
+sql_insert_product_price_drop = """
+INSERT INTO
+  product_price_drop (product_price_id, value, currency, original_value, original_currency, percentage)
+VALUES
+  (?, ?, ?, ?, ?, ?)
+"""
+
+
+def insert_product_price_drop(product_price_id: int, price_drop: PriceDrop):
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute(
+            sql_insert_product_price_drop,
+            (
+                product_price_id,
+                price_drop.price.value,
+                price_drop.price.currency,
+                price_drop.original_price.value,
+                price_drop.original_price.currency,
+                price_drop.percentage.value,
+            ),
         )
 
 
-sql_insert_price_drop = """
+sql_insert_product_price_loyalty = """
 INSERT INTO
-  price_drop (asin, hostname, value, currency)
+  product_price_loyalty (product_price_id, point, percentage)
 VALUES
-  (?, ?, ?, ?)
+  (?, ?, ?)
 """
 
 
-def insert_price_drop(price_drop: prices.PriceDrop):
+def insert_product_price_loyalty(product_price_id: int, loyalty: Loyalty):
     with get_conn() as conn:
         cur = conn.cursor()
         cur.execute(
-            sql_insert_price,
+            sql_insert_product_price_loyalty,
             (
-                price_drop.asin,
-                price_drop.hostname,
-                str(price_drop.value),
-                price_drop.currency,
+                product_price_id,
+                loyalty.point,
+                loyalty.percentage.value,
             ),
         )
 
@@ -78,7 +125,7 @@ WHERE
 """
 
 
-def ensure_product(product: products.Product):
+def ensure_product(product: Product):
     with get_conn() as conn:
         cur = conn.cursor()
         cur.execute(sql_ensure_product, (product.asin, product.title, product.byline))
@@ -98,7 +145,7 @@ SET
 """
 
 
-def ensure_product_wishlist(product: products.Product, wishlist: wishlists.Wishlist):
+def ensure_product_wishlist(product: Product, wishlist: Wishlist):
     with get_conn() as conn:
         cur = conn.cursor()
         cur.execute(sql_ensure_product_wishlist, (product.asin, wishlist.wishlist_id))
@@ -113,7 +160,7 @@ ON CONFLICT (hostname) DO NOTHING;
 """
 
 
-def ensure_site(site: sites.Site):
+def ensure_site(site: Site):
     with get_conn() as conn:
         cur = conn.cursor()
         cur.execute(sql_ensure_site, (site.hostname,))
@@ -135,10 +182,10 @@ WHERE
 """
 
 
-def ensure_wishlist(wishlist: wishlists.Wishlist):
+def ensure_wishlist(wishlist: Wishlist):
     with get_conn() as conn:
         cur = conn.cursor()
         cur.execute(
             sql_ensure_wishlist,
-            (wishlist.wishlist_id, wishlist.hostname, wishlist.name),
+            (wishlist.wishlist_id, wishlist.site.hostname, wishlist.name),
         )

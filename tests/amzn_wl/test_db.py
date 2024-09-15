@@ -7,10 +7,13 @@ from alembic.command import upgrade
 from alembic.config import Config as AlembicCfg
 from amzn_wl import db, primitives
 from amzn_wl.configs import config
-from amzn_wl.entities.prices import Price, PriceDrop
-from amzn_wl.entities.products import Product
-from amzn_wl.entities.sites import Site
-from amzn_wl.entities.wishlists import Wishlist
+from amzn_wl.entities.loyalty import Loyalty
+from amzn_wl.entities.price import Price
+from amzn_wl.entities.price_drop import PriceDrop
+from amzn_wl.entities.product import Product
+from amzn_wl.entities.product_price import ProductPrice
+from amzn_wl.entities.site import Site
+from amzn_wl.entities.wishlist import Wishlist
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -42,21 +45,27 @@ def delete_table(table: str) -> None:
 
 
 @pytest.fixture(scope="function")
-def price_table():
-    yield
-    delete_table("price")
-
-
-@pytest.fixture(scope="function")
-def price_drop_table():
-    yield
-    delete_table("price_drop")
-
-
-@pytest.fixture(scope="function")
 def product_table():
     yield
     delete_table("product")
+
+
+@pytest.fixture(scope="function")
+def product_price_table():
+    yield
+    delete_table("product_price")
+
+
+@pytest.fixture(scope="function")
+def product_price_drop_table():
+    yield
+    delete_table("product_price_drop")
+
+
+@pytest.fixture(scope="function")
+def product_price_loyalty_table():
+    yield
+    delete_table("product_price_loyalty")
 
 
 @pytest.fixture(scope="function")
@@ -77,84 +86,62 @@ def wishlist_table():
     delete_table("wishlist")
 
 
-class TestInsertPrice:
-    def test_insert(self, product_table, site_table, price_table):
+class TestInsertProductPrice:
+    def test_insert(
+        self,
+        product_table,
+        site_table,
+        product_price_table,
+        product_price_drop_table,
+        product_price_loyalty_table,
+    ):
+        product = Product(asin="foo", title="bar", byline="baz")
+        site = Site(hostname="en")
+        price = Price(value=Decimal("1.99"), currency="$")
+        price_drop = PriceDrop(
+            Price(Decimal("0.99"), "$"),
+            primitives.Percentage(Decimal("80")),
+            Price(Decimal("11.99"), "$"),
+        )
+        loyalty = Loyalty(Decimal("0.50"), primitives.Percentage(Decimal("50")))
+
+        product_price = ProductPrice(
+            product, site, price, price_drop=price_drop, loyalty=loyalty
+        )
+        db.ensure_product(product)
+        db.ensure_site(site)
+
+        product_price_id = db.insert_product_price(product_price)
+
+        rows = select_fetch_all(
+            "SELECT asin, hostname, value, currency FROM product_price"
+        )
+        assert rows == [(product.asin, site.hostname, price.value, price.currency)]
+        rows = select_fetch_all(
+            "SELECT product_price_id, value FROM product_price_drop"
+        )
+        assert rows == [(product_price_id, price_drop.price.value)]
+        rows = select_fetch_all(
+            "SELECT product_price_id, point FROM product_price_loyalty"
+        )
+        assert rows == [(product_price_id, loyalty.point)]
+
+    def test_insert_multiple(self, product_table, site_table, product_price_table):
         product = Product(asin="foo", title="bar", byline="baz")
         site = Site(hostname="en")
         price = Price(
-            asin=product.asin,
-            hostname=site.hostname,
             value=Decimal("1.99"),
             currency="$",
         )
+        product_price = ProductPrice(product, site, price)
         db.ensure_product(product)
         db.ensure_site(site)
 
-        db.insert_price(price)
-
-        rows = select_fetch_all("SELECT asin, hostname, value, currency FROM price")
-        assert rows == [(product.asin, site.hostname, str(price.value), price.currency)]
-
-    def test_insert_multiple(self, product_table, site_table, price_table):
-        product = Product(asin="foo", title="bar", byline="baz")
-        site = Site(hostname="en")
-        price = Price(
-            asin=product.asin,
-            hostname=site.hostname,
-            value=Decimal("1.99"),
-            currency="$",
-        )
-        db.ensure_product(product)
-        db.ensure_site(site)
-
-        db.insert_price(price)
-        db.insert_price(price)
+        db.insert_product_price(product_price)
+        db.insert_product_price(product_price)
 
         rows = select_fetch_all(
-            "SELECT price_id, asin, hostname, value, currency FROM price"
-        )
-        assert len(rows) == 2
-
-
-@pytest.mark.skip
-class TestInsertPriceDrop:
-    def test_insert(self, product_table, site_table, price_drop_table):
-        product = Product(asin="foo", title="bar", byline="baz")
-        site = Site(hostname="en")
-        price_drop = PriceDrop(
-            asin=product.asin,
-            hostname=site.hostname,
-            percentage=primitives.Percentage(Decimal("15"), "%"),
-        )
-        db.ensure_product(product)
-        db.ensure_site(site)
-
-        db.insert_price_drop(price_drop)
-
-        rows = select_fetch_all(
-            "SELECT asin, hostname, value, currency FROM price_drop"
-        )
-        assert rows == [
-            (product.asin, site.hostname, str(price_drop.value), price_drop.unit)
-        ]
-
-    def test_insert_multiple(self, product_table, site_table, price_drop_table):
-        product = Product(asin="foo", title="bar", byline="baz")
-        site = Site(hostname="en")
-        price_drop = PriceDrop(
-            asin=product.asin,
-            hostname=site.hostname,
-            value=Decimal("1.99"),
-            currency="$",
-        )
-        db.ensure_product(product)
-        db.ensure_site(site)
-
-        db.insert_price(price_drop)
-        db.insert_price(price_drop)
-
-        rows = select_fetch_all(
-            "SELECT price_id, asin, hostname, value, currency FROM price_drop"
+            "SELECT product_price_id, asin, hostname, value, currency FROM product_price"
         )
         assert len(rows) == 2
 
@@ -186,7 +173,7 @@ class TestEnsureProductWishlist:
     def test_insert(self, product_table, wishlist_table, product_wishlist_table):
         product = Product(asin="foo", title="bar", byline="baz")
         site = Site(hostname="foo.com")
-        wishlist = Wishlist(wishlist_id="qux", hostname="foo.com", name="wl")
+        wishlist = Wishlist(wishlist_id="qux", site=site, name="wl")
         db.ensure_product(product)
         db.ensure_site(site)
         db.ensure_wishlist(wishlist)
@@ -199,7 +186,7 @@ class TestEnsureProductWishlist:
     def test_insert_repeat(self, product_table, wishlist_table, product_wishlist_table):
         product = Product(asin="foo", title="bar", byline="baz")
         site = Site(hostname="foo.com")
-        wishlist = Wishlist(wishlist_id="qux", hostname="foo.com", name="wl")
+        wishlist = Wishlist(wishlist_id="qux", site=site, name="wl")
         db.ensure_product(product)
         db.ensure_site(site)
         db.ensure_wishlist(wishlist)

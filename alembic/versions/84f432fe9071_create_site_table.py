@@ -7,6 +7,7 @@ Create Date: 2024-09-12 11:02:57.316338
 """
 
 import sqlalchemy as sa
+from sqlalchemy.dialects import sqlite
 
 from alembic import op
 
@@ -36,20 +37,20 @@ DROP TRIGGER IF EXISTS site_update_updated;
 def upgrade() -> None:
     op.create_table(
         "site",
-        sa.Column("hostname", sa.String(), primary_key=True),
+        sa.Column("hostname", sqlite.TEXT, primary_key=True),
         sa.Column(
             "created",
-            sa.TIMESTAMP,
+            sqlite.TIMESTAMP,
             nullable=False,
             server_default=sa.text("CURRENT_TIMESTAMP"),
         ),
         sa.Column(
             "updated",
-            sa.TIMESTAMP,
+            sqlite.TIMESTAMP,
             nullable=False,
             server_default=sa.text("CURRENT_TIMESTAMP"),
         ),
-        sa.Column("deleted", sa.TIMESTAMP, nullable=True),
+        sa.Column("deleted", sqlite.TIMESTAMP, nullable=True),
     )
     op.execute(sql_create_trigger)
 

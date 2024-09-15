@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from amzn_wl.entities.prices import Price
+from amzn_wl.entities.price import Price
 
 
 class TestPrice:

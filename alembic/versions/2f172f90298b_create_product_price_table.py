@@ -1,8 +1,8 @@
-"""Create wishlist table.
+"""Create product_price table.
 
-Revision ID: d10c8eddc0cf
-Revises: 2f172f90298b
-Create Date: 2023-07-20 23:55:12.723186
+Revision ID: 2f172f90298b
+Revises: 8981a7eed573
+Create Date: 2023-07-20 18:56:24.997189
 
 """
 
@@ -11,32 +11,34 @@ from sqlalchemy.dialects import sqlite
 
 from alembic import op
 
-revision = "d10c8eddc0cf"
-down_revision = "2f172f90298b"
+revision = "2f172f90298b"
+down_revision = "8981a7eed573"
 branch_labels = None
 depends_on = None
 
 
 sql_create_trigger = """
 CREATE TRIGGER IF NOT EXISTS
-    wishlist_update_updated
-AFTER UPDATE ON wishlist
+    product_price_update_updated
+AFTER UPDATE ON product_price
 BEGIN
-    UPDATE wishlist
+    UPDATE product_price
     SET updated = DATETIME('now')
-    WHERE wishlist_id = NEW.wishlist_id;
+    WHERE product_price_id = NEW.product_price_id;
 END;
 """
 
 sql_drop_trigger = """
-DROP TRIGGER IF EXISTS wishlist_update_updated;
+DROP TRIGGER IF EXISTS product_price_update_updated;
 """
 
 
 def upgrade() -> None:
     op.create_table(
-        "wishlist",
-        sa.Column("wishlist_id", sqlite.VARCHAR(16), primary_key=True),
+        "product_price",
+        sa.Column(
+            "product_price_id", sqlite.INTEGER, primary_key=True, autoincrement="auto"
+        ),
         sa.Column(
             "created",
             sqlite.TIMESTAMP,
@@ -50,12 +52,14 @@ def upgrade() -> None:
             server_default=sa.text("CURRENT_TIMESTAMP"),
         ),
         sa.Column("deleted", sqlite.TIMESTAMP, nullable=True),
+        sa.Column("asin", sqlite.VARCHAR(10), sa.ForeignKey("product.asin")),
         sa.Column("hostname", sqlite.TEXT, sa.ForeignKey("site.hostname")),
-        sa.Column("name", sqlite.TEXT, nullable=False),
+        sa.Column("value", sqlite.DECIMAL, nullable=False),
+        sa.Column("currency", sqlite.VARCHAR(1), nullable=False),
     )
     op.execute(sql_create_trigger)
 
 
 def downgrade() -> None:
     op.execute(sql_drop_trigger)
-    op.drop_table("wishlist")
+    op.drop_table("product_price")

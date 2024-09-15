@@ -7,6 +7,7 @@ Create Date: 2023-07-21 00:00:54.942808
 """
 
 import sqlalchemy as sa
+from sqlalchemy.dialects import sqlite
 
 from alembic import op
 
@@ -22,7 +23,7 @@ CREATE TRIGGER IF NOT EXISTS
 AFTER UPDATE ON product_wishlist
 BEGIN
     UPDATE product_wishlist
-    SET updated = datetime('now')
+    SET updated = DATETIME('now')
     WHERE asin = NEW.asin
       AND wishlist_id = NEW.wishlist_id ;
 END;
@@ -38,29 +39,29 @@ def upgrade() -> None:
         "product_wishlist",
         sa.Column(
             "asin",
-            sa.String(),
+            sqlite.VARCHAR(10),
             sa.ForeignKey("product.asin"),
             primary_key=True,
         ),
         sa.Column(
             "wishlist_id",
-            sa.String(),
+            sqlite.VARCHAR(16),
             sa.ForeignKey("wishlist.wishlist_id"),
             primary_key=True,
         ),
         sa.Column(
             "created",
-            sa.TIMESTAMP,
+            sqlite.TIMESTAMP,
             nullable=False,
             server_default=sa.text("CURRENT_TIMESTAMP"),
         ),
         sa.Column(
             "updated",
-            sa.TIMESTAMP,
+            sqlite.TIMESTAMP,
             nullable=False,
             server_default=sa.text("CURRENT_TIMESTAMP"),
         ),
-        sa.Column("deleted", sa.TIMESTAMP, nullable=True),
+        sa.Column("deleted", sqlite.TIMESTAMP, nullable=True),
         sa.PrimaryKeyConstraint("asin", "wishlist_id", name="product_wishlist_pk"),
     )
     op.execute(sql_create_trigger)

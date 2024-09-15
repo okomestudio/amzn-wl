@@ -6,7 +6,7 @@ from dataclasses_json import dataclass_json
 from selenium.webdriver.common.by import By
 
 from .. import primitives
-from . import prices
+from .price import Price
 
 
 @dataclass_json
@@ -35,9 +35,9 @@ def extract_loyalty(driver):
     return Loyalty(point, percentage) if point or percentage else None
 
 
-def compute_effective_price(price: prices.Price, loyalty: Loyalty) -> prices.Price:
+def compute_effective_price(price: Price, loyalty: Loyalty) -> Price:
     if loyalty:
-        effective_price = prices.Price(price.value - loyalty.point, price.currency)
+        effective_price = Price(price.value - loyalty.point, price.currency)
     else:
         effective_price = price
     return effective_price

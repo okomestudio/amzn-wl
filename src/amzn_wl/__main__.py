@@ -4,7 +4,8 @@ import logging
 from argparse import ArgumentParser, BooleanOptionalAction
 
 from .drivers import create_driver
-from .entities.wishlists import WishlistItem, get_all_wishlist_items
+from .entities.wishlist_item import WishlistItem
+from .extractors import get_all_wishlist_items
 from .signin import signin
 
 logging.basicConfig(level=logging.INFO)
