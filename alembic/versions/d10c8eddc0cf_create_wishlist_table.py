@@ -22,7 +22,7 @@ CREATE TRIGGER IF NOT EXISTS
 AFTER UPDATE ON wishlist
 BEGIN
     UPDATE wishlist
-    SET updated = DATETIME('NOW')
+    SET updated = DATETIME('now')
     WHERE wishlist_id = NEW.wishlist_id;
 END;
 """
@@ -49,6 +49,7 @@ def upgrade() -> None:
             server_default=sa.text("CURRENT_TIMESTAMP"),
         ),
         sa.Column("deleted", sa.TIMESTAMP, nullable=True),
+        sa.Column("hostname", sa.String(), sa.ForeignKey("site.hostname")),
         sa.Column("name", sa.String(), nullable=False),
     )
     op.execute(sql_create_trigger)

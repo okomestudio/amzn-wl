@@ -1,11 +1,26 @@
 from amzn_wl.entities import wishlists
 
 
-class TestExtractWishlistIdFromUrl:
+class TestWishlist:
+    def test_to_dict(self):
+        wishlist = wishlists.Wishlist("wid", "site.com", "name")
+
+        result = wishlist.to_dict()
+
+        assert result == {
+            "wishlist_id": "wid",
+            "hostname": "site.com",
+            "name": "name",
+            "url": "https://site.com/hz/wishlist/ls/wid",
+        }
+
+
+class TestExtractHostnameAndWishlistId:
     def test(self):
-        expected = "WF1YPOU6BH4B"
-        url = f"https://www.amazon.com/hz/wishlist/ls/{expected}"
+        hostname = "www.amazon.com"
+        wishlist_id = "WF1YPOU6BH4B"
+        url = f"https://{ hostname }/hz/wishlist/ls/{ wishlist_id }"
 
-        wishlist_id = wishlists.extract_wishlist_id_from_url(url)
+        result = wishlists.extract_hostname_and_wishlist_id(url)
 
-        assert wishlist_id == expected
+        assert result == (hostname, wishlist_id)

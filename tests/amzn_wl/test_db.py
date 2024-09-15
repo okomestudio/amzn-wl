@@ -185,8 +185,10 @@ class TestEnsureProduct:
 class TestEnsureProductWishlist:
     def test_insert(self, product_table, wishlist_table, product_wishlist_table):
         product = Product(asin="foo", title="bar", byline="baz")
-        wishlist = Wishlist(wishlist_id="qux", url="https://foo.bar", name="wl")
+        site = Site(hostname="foo.com")
+        wishlist = Wishlist(wishlist_id="qux", hostname="foo.com", name="wl")
         db.ensure_product(product)
+        db.ensure_site(site)
         db.ensure_wishlist(wishlist)
 
         db.ensure_product_wishlist(product, wishlist)
@@ -196,8 +198,10 @@ class TestEnsureProductWishlist:
 
     def test_insert_repeat(self, product_table, wishlist_table, product_wishlist_table):
         product = Product(asin="foo", title="bar", byline="baz")
-        wishlist = Wishlist(wishlist_id="qux", url="https://foo.bar", name="wl")
+        site = Site(hostname="foo.com")
+        wishlist = Wishlist(wishlist_id="qux", hostname="foo.com", name="wl")
         db.ensure_product(product)
+        db.ensure_site(site)
         db.ensure_wishlist(wishlist)
 
         db.ensure_product_wishlist(product, wishlist)

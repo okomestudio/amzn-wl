@@ -121,14 +121,16 @@ def ensure_site(site: sites.Site):
 
 sql_ensure_wishlist = """
 INSERT INTO
-  wishlist (wishlist_id, name)
+  wishlist (wishlist_id, hostname, name)
 VALUES
-  (?, ?)
+  (?, ?, ?)
 ON CONFLICT (wishlist_id) DO
 UPDATE
 SET
+  hostname = excluded.hostname,
   name = excluded.name
 WHERE
+  hostname != excluded.hostname OR
   name != excluded.name;
 """
 
@@ -136,4 +138,7 @@ WHERE
 def ensure_wishlist(wishlist: wishlists.Wishlist):
     with get_conn() as conn:
         cur = conn.cursor()
-        cur.execute(sql_ensure_wishlist, (wishlist.wishlist_id, wishlist.name))
+        cur.execute(
+            sql_ensure_wishlist,
+            (wishlist.wishlist_id, wishlist.hostname, wishlist.name),
+        )

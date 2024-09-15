@@ -23,31 +23,33 @@ from . import loyalties, prices, products
 logger = logging.getLogger(__name__)
 
 
-def extract_wishlist_id_from_url(url: str) -> str:
-    m = re.match(r"https?://.+/wishlist/ls/(\w+)/?$", url)
-    wishlist_id = m.group(1) if m else None
-    return wishlist_id
-
-
 @dataclass_json
 @dataclass
 class Wishlist:
     """Wishlist."""
 
     wishlist_id: str
+    hostname: str
     name: str
-    url: str = None
+    url: str = None  # set automatically by the class
 
-    @classmethod
-    def parse_from_link_element(cls, elmt) -> Wishlist:
-        url = elmt.get_attribute("href")
-        name = elmt.find_elements(
-            By.XPATH, ".//span[starts-with(@id, 'wl-list-entry-title-')]"
-        )[0].text
-        url = sanitize_url(url)
-        wishlist_id = extract_wishlist_id_from_url(url)
-        assert wishlist_id is not None
-        return cls(wishlist_id, name, url)
+    def __post_init__(self):
+        self.url = f"https://{ self.hostname }/hz/wishlist/ls/{ self.wishlist_id }"
+
+
+def extract_wishlist_id(path: str) -> str:
+    """Extract wishlist_id from the URL path."""
+    m = re.match(r".+/wishlist/ls/(\w+)/?$", path)
+    wishlist_id = m.group(1) if m else None
+    return wishlist_id
+
+
+def extract_hostname_and_wishlist_id(url: str) -> tuple[str, str]:
+    """Extract hostname and wishlist_id from the URL."""
+    p = urllib.parse.urlparse(url)
+    hostname = p.netloc
+    wishlist_id = extract_wishlist_id(p.path)
+    return hostname, wishlist_id
 
 
 @dataclass_json
@@ -205,7 +207,12 @@ def get_all_wishlist_items(
 
     wishlists = []
     for link in elmt.find_elements(By.XPATH, './/div[contains(@class, "wl-list")]//a'):
-        wishlist = Wishlist.parse_from_link_element(link)
+        url = elmt.get_attribute("href")
+        name = elmt.find_elements(
+            By.XPATH, ".//span[starts-with(@id, 'wl-list-entry-title-')]"
+        )[0].text
+        hostname, wishlist_id = extract_hostname_and_wishlist_id(url)
+        wishlist = Wishlist(wishlist_id, hostname, name)
         wishlists.append(wishlist)
 
     items = []
