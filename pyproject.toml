@@ -7,7 +7,7 @@ name = "amzn_wl"
 version = "24.9.0"
 authors = [{name="Taro Sato", email="okomestudio@gmail.com"}]
 description = "amzn-wl for Python"
-readme = "README.rst"
+readme = "README.md"
 requires-python = ">=3.12"
 classifiers = [
     "Development Status :: 3 - Alpha",
