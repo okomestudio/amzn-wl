@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
-
+#
+# Sort Kindle items by price in ascending order:
+#
+#   $ bin/wl-sort-by-price dump.jsonl
+#
+# This script depends on the `jq` command for JSON processing.
+#
 
 cat "$@" \
     | jq -s 'sort_by([.product_price.effective_price.value | tonumber], [.product.title])' \
