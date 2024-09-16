@@ -79,11 +79,11 @@ def insert_product_price_drop(product_price_id: int, price_drop: PriceDrop):
             sql_insert_product_price_drop,
             (
                 product_price_id,
-                price_drop.price.value,
-                price_drop.price.currency,
+                price_drop.price.value if price_drop.price else None,
+                price_drop.price.currency if price_drop.price else None,
                 price_drop.original_price.value,
                 price_drop.original_price.currency,
-                price_drop.percentage.value,
+                price_drop.percentage.value if price_drop.percentage else None,
             ),
         )
 
@@ -139,8 +139,6 @@ VALUES
 ON CONFLICT (asin, wishlist_id) DO
 UPDATE
 SET
-  asin = excluded.asin,
-  wishlist_id = excluded.wishlist_id,
   updated = DATETIME('now')
 """
 

@@ -1,4 +1,5 @@
 import re
+import urllib.parse
 from dataclasses import dataclass
 
 from dataclasses_json import dataclass_json
@@ -16,6 +17,7 @@ class Product:
 
 def extract_asin(url: str) -> str:
     """Extract ASIN from the URL."""
-    m = re.match(r".+/dp/(\w+)/?$", url)
+    p = urllib.parse.urlparse(url)
+    m = re.match(r".*/dp/(\w+)/?$", p.path)
     asin = m.group(1) if m else None
     return asin

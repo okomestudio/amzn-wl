@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 def dump_wishlist_products(
-    region: str, dump: str, wishlist: str, headless: bool
+    region: str, dump: str, wishlist_ids: list[str] | None, headless: bool
 ) -> None:
     """Dump items from all wishlists to JSONL."""
     landing_urls = {
@@ -27,7 +27,7 @@ def dump_wishlist_products(
     items: list[WishlistItem] = []
     try:
         signin(driver, url)
-        items = get_all_wishlist_items(driver, url, wishlist)
+        items = get_all_wishlist_items(driver, url, wishlist_ids)
 
     except Exception as exc:
         logger.exception(exc)
@@ -56,12 +56,15 @@ def main() -> None:
         default="dump.jsonl",
         help="output dump JSONL file (default: 'dump.jsonl')",
     )
-    p.add_argument("--wishlist", "-l", type=str, help="wishlist key")
+    p.add_argument("--wishlist-id", "-l", action="append", type=str, help="wishlist ID")
     p.add_argument("--headless", action=BooleanOptionalAction, help="use headless mode")
 
     args = p.parse_args()
 
-    dump_wishlist_products(**vars(args))
+    args = vars(args)
+    args["wishlist_ids"] = args.pop("wishlist_id")
+
+    dump_wishlist_products(**args)
 
 
 if __name__ == "__main__":

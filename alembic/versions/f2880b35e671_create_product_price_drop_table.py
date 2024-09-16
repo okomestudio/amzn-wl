@@ -59,11 +59,11 @@ def upgrade() -> None:
             sqlite.INTEGER,
             sa.ForeignKey("product_price.product_price_id"),
         ),
-        sa.Column("value", sqlite.DECIMAL, nullable=False),
-        sa.Column("currency", sqlite.VARCHAR(1), nullable=False),
+        sa.Column("value", sqlite.DECIMAL, nullable=True),
+        sa.Column("currency", sqlite.VARCHAR(1), nullable=True),
         sa.Column("original_value", sqlite.DECIMAL, nullable=False),
         sa.Column("original_currency", sqlite.VARCHAR(1), nullable=False),
-        sa.Column("percentage", sqlite.DECIMAL, nullable=False),
+        sa.Column("percentage", sqlite.DECIMAL, nullable=True),
     )
     op.execute(sql_create_trigger)
 

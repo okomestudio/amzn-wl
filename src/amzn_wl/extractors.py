@@ -8,7 +8,7 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
-from .. import db
+from . import db
 from . import primitives
 from .entities.loyalty import compute_effective_price, extract_loyalty
 from .entities.price import Price
@@ -125,7 +125,7 @@ def extract_wishlist_item(
     )
     db.ensure_product(product)
 
-    price_drop = extract_price_drop(elmt, product, wishlist.site)
+    price_drop = extract_price_drop(elmt)
     product_price = ProductPrice(
         product, wishlist.site, price, price_drop, loyalty, effective_price
     )
@@ -136,6 +136,8 @@ def extract_wishlist_item(
         product_price=product_price,
         wishlist=wishlist,
     )
+    db.ensure_product_wishlist(item.product, item.wishlist)
+
     logger.info(item.to_json(ensure_ascii=False, indent=4))
     return item
 
@@ -174,7 +176,7 @@ def extract_wishlist(elmt: WebElement) -> Wishlist | None:
 
 
 def get_all_wishlist_items(
-    driver: webdriver.Chrome, url: str, wishlist: str | None = None
+    driver: webdriver.Chrome, url: str, wishlist_ids: list[str] | None = None
 ) -> list[WishlistItem]:
     """Entry point for getting items from all wishlists."""
     url = urllib.parse.urljoin(url, "/hz/wishlist/ls")
@@ -194,6 +196,8 @@ def get_all_wishlist_items(
 
     items = []
     for wishlist in [wishlist for wishlist in wishlists if wishlist]:
+        if wishlist_ids and (wishlist.wishlist_id not in wishlist_ids):
+            continue
         items.extend(extract_wishlist_items(driver, wishlist))
 
     return items
