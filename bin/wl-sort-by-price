@@ -2,7 +2,7 @@
 
 
 cat "$@" \
-    | jq -s 'sort_by([.effective_price.value | tonumber], [.product.title])' \
+    | jq -s 'sort_by([.product_price.effective_price.value | tonumber], [.product.title])' \
     | jq -c 'map(select(.product.byline | contains("Kindle")))' \
-    | jq '.[] | [.effective_price.value, (.product.title + " " * 40)[0:39], .product.url, .wishlist.url, .price_drop.original_price.value ]' \
+    | jq '.[] | [.product_price.effective_price.value, (.product.title + " " * 40)[0:39], .product.url, .wishlist.url, .product_price.price_drop.original_price.value ]' \
     | jq -r '@tsv'
