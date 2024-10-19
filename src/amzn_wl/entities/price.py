@@ -20,14 +20,15 @@ class Price:
 
     value: Decimal
     currency: str
+    currency_code: str
 
     def __post_init__(self):
         self.value = Decimal(self.value)
 
     @classmethod
     def parse(cls, s: str) -> Price:
-        value, currency = _parse_value_and_currency(s)
-        return cls(value, currency)
+        value, currency, currency_code = _parse_value_and_currency(s)
+        return cls(value, currency, currency_code)
 
 
 def _detect_locale(s: str) -> str:
@@ -38,7 +39,7 @@ def _detect_locale(s: str) -> str:
     return loc
 
 
-def _parse_value_and_currency(s: str) -> tuple[str, str]:
+def _parse_value_and_currency(s: str) -> tuple[str, str, str]:
     """Parse price value and currency from string."""
     logger.info("Parsing %s as price...", s)
     loc = _detect_locale(s)
@@ -59,4 +60,12 @@ def _parse_value_and_currency(s: str) -> tuple[str, str]:
         value = re.match(re_str, s).group(1)
         value = locale.delocalize(value)
 
-    return value, symbol
+    currency_code = None
+    if loc == "en_US.UTF-8" and symbol == "$":
+        currency_code = "USD"
+    elif loc == "ja_JP.UTF-8" and symbol == "￥":
+        currency_code = "JPY"
+    if not currency_code:
+        raise RuntimeError(f"Currency cannot be determined: '{s}'")
+
+    return value, symbol, currency_code

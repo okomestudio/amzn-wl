@@ -97,11 +97,11 @@ class TestInsertProductPrice:
     ):
         product = Product(asin="foo", title="bar", byline="baz")
         site = Site(hostname="en")
-        price = Price(value=Decimal("1.99"), currency="$")
+        price = Price(value=Decimal("1.99"), currency="$", currency_code="USD")
         price_drop = PriceDrop(
-            Price(Decimal("0.99"), "$"),
+            Price(Decimal("0.99"), "$", "USD"),
             primitives.Percentage(Decimal("80")),
-            Price(Decimal("11.99"), "$"),
+            Price(Decimal("11.99"), "$", "USD"),
         )
         loyalty = Loyalty(Decimal("0.50"), primitives.Percentage(Decimal("50")))
 
@@ -132,6 +132,7 @@ class TestInsertProductPrice:
         price = Price(
             value=Decimal("1.99"),
             currency="$",
+            currency_code="USD",
         )
         product_price = ProductPrice(product, site, price)
         db.ensure_product(product)

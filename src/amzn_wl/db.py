@@ -34,9 +34,10 @@ def get_conn():
 
 sql_insert_product_price = """
 INSERT INTO
-  product_price (asin, hostname, value, currency)
-VALUES
-  (?, ?, ?, ?)
+  product_price (asin, hostname, value, currency, currency_id)
+SELECT
+  ?, ?, ?, ?, currency_id
+FROM currency WHERE code = ?
 RETURNING product_price_id
 """
 
@@ -51,6 +52,7 @@ def insert_product_price(product_price: ProductPrice) -> int:
                 product_price.site.hostname,
                 product_price.price.value,
                 product_price.price.currency,
+                product_price.price.currency_code,
             ),
         )
         row = cur.fetchone()
