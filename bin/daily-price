@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+cat bin/wl-sort-by-price.sql | sqlite3 amzn-wl.db -cmd '.mode column'
