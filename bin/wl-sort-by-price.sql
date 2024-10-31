@@ -17,7 +17,7 @@ WITH
     FROM
       product_price
     WHERE
-      created > DATETIME('now', '-1 day')
+      created > DATETIME('now', '-18 hour')
   )
 SELECT
   price.price,
