@@ -114,9 +114,11 @@ class TestInsertProductPrice:
         product_price_id = db.insert_product_price(product_price)
 
         rows = select_fetch_all(
-            "SELECT asin, hostname, value, currency FROM product_price"
+            "SELECT asin, hostname, value, code "
+            "FROM product_price "
+            "LEFT JOIN currency ON product_price.currency_id = currency.currency_id"
         )
-        assert rows == [(product.asin, site.hostname, price.value, price.currency)]
+        assert rows == [(product.asin, site.hostname, price.value, price.currency_code)]
         rows = select_fetch_all(
             "SELECT product_price_id, value FROM product_price_drop"
         )
@@ -142,7 +144,9 @@ class TestInsertProductPrice:
         db.insert_product_price(product_price)
 
         rows = select_fetch_all(
-            "SELECT product_price_id, asin, hostname, value, currency FROM product_price"
+            "SELECT product_price_id, asin, hostname, value, currency.code "
+            "FROM product_price "
+            "LEFT JOIN currency ON product_price.currency_id = currency.currency_id"
         )
         assert len(rows) == 2
 

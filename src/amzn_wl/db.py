@@ -34,9 +34,9 @@ def get_conn():
 
 sql_insert_product_price = """
 INSERT INTO
-  product_price (asin, hostname, value, currency, currency_id)
+  product_price (asin, hostname, value, currency_id)
 SELECT
-  ?, ?, ?, ?, currency_id
+  ?, ?, ?, currency_id
 FROM currency WHERE code = ?
 RETURNING product_price_id
 """
@@ -51,7 +51,6 @@ def insert_product_price(product_price: ProductPrice) -> int:
                 product_price.product.asin,
                 product_price.site.hostname,
                 product_price.price.value,
-                product_price.price.currency,
                 product_price.price.currency_code,
             ),
         )
@@ -68,9 +67,10 @@ def insert_product_price(product_price: ProductPrice) -> int:
 
 sql_insert_product_price_drop = """
 INSERT INTO
-  product_price_drop (product_price_id, value, currency, original_value, original_currency, percentage)
-VALUES
-  (?, ?, ?, ?, ?, ?)
+  product_price_drop (product_price_id, value, currency_id, original_value, original_currency_id, percentage)
+SELECT
+  ?, ?, currency_id, ?, currency_id, ?
+FROM currency WHERE code = ?
 """
 
 
@@ -82,10 +82,9 @@ def insert_product_price_drop(product_price_id: int, price_drop: PriceDrop):
             (
                 product_price_id,
                 price_drop.price.value if price_drop.price else None,
-                price_drop.price.currency if price_drop.price else None,
                 price_drop.original_price.value,
-                price_drop.original_price.currency,
                 price_drop.percentage.value if price_drop.percentage else None,
+                price_drop.original_price.currency_code,
             ),
         )
 
