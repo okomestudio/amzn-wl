@@ -59,3 +59,7 @@ $ AMZN_USERNAME=... AMZN_PASSWORD=... AMZN_OTP=... amzn-wl -d "$output"
 
 This may be useful when you use a secret manager and want to
 programatically set these credentials.
+
+## TODOs
+
+- Restart and refresh the landing page if the login widge cannot be found
