@@ -8,8 +8,7 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
-from . import db
-from . import primitives
+from . import db, primitives
 from .entities.loyalty import compute_effective_price, extract_loyalty
 from .entities.price import Price
 from .entities.price_drop import PriceDrop

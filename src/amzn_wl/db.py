@@ -1,6 +1,7 @@
 """Database access layer."""
 
 import contextlib
+import logging
 import sqlite3
 from decimal import Decimal
 
@@ -15,11 +16,17 @@ from .entities.wishlist import Wishlist
 sqlite3.register_adapter(Decimal, lambda d: str(d))
 sqlite3.register_converter("decimal", lambda s: Decimal(s.decode()))
 
+logger = logging.getLogger(__name__)
+
 
 @contextlib.contextmanager
 def get_conn():
     database = config["sqlite"]["database"]
     conn = sqlite3.connect(database, detect_types=sqlite3.PARSE_DECLTYPES)
+
+    # Uncomment for query logging:
+    # conn.set_trace_callback(logger.info)
+
     conn.execute("PRAGMA foreign_keys = 1")
     try:
         yield conn
