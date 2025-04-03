@@ -20,24 +20,33 @@ def signin(
     username = os.environ.get("AMZN_USERNAME") or input("Enter in your username: ")
     password = os.environ.get("AMZN_PASSWORD") or getpass("Enter in your password: ")
 
-    for _ in range(max_retry):
-        driver.get(url)
-        elmt = None
+    driver.get(url)
+
+    elmt = None
+    try:
+        elmt = WebDriverWait(driver, max_wait).until(
+            EC.presence_of_element_located((By.ID, "nav-link-accountList"))
+        )
+    except exceptions.TimeoutException:
+        logger.warning("Cannot find 'Account & Login' section. Retrying...")
+    else:
+        elmt.find_elements(By.XPATH, ".//span")[0].click()
+
+    if not elmt:
         try:
             elmt = WebDriverWait(driver, max_wait).until(
-                EC.presence_of_element_located((By.ID, "nav-link-accountList"))
+                EC.presence_of_element_located((By.XPATH, "//*[text()='Your Account']"))
             )
         except exceptions.TimeoutException:
-            logger.warning("Cannot find 'Account & Login' section. Retrying...")
-            continue
+            logger.warning("Cannot find 'Your Account' section. Retrying...")
         else:
-            break
+            elmt.find_elements(By.XPATH, "./span")[0].click()
 
     if not elmt:
         print(driver.page_source)
         raise RuntimeError("Signin failed")
 
-    elmt.find_elements(By.XPATH, "./span")[0].click()
+    # raise RuntimeError("SUCCESS")
 
     WebDriverWait(driver, max_wait).until(
         EC.presence_of_element_located((By.ID, "ap_email"))
@@ -69,7 +78,7 @@ def signin(
         EC.presence_of_element_located(
             (
                 By.XPATH,
-                "//a[@id='nav-link-accountList']//span[@id='nav-link-accountList-nav-line-1']",
+                "//*[@id='nav-link-accountList']//span[@id='nav-link-accountList-nav-line-1']",
             ),
         )
     )
