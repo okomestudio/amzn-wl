@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 def signin(
-    driver: webdriver.Chrome, url: str, max_wait: float = 10, max_retry: int = 1
+    driver: webdriver.Chrome, url: str, max_wait: float = 16, max_retry: int = 1
 ) -> None:
     """Sign in from given landing URL."""
     username = os.environ.get("AMZN_USERNAME") or input("Enter in your username: ")
@@ -48,9 +48,19 @@ def signin(
 
     # raise RuntimeError("SUCCESS")
 
-    WebDriverWait(driver, max_wait).until(
-        EC.presence_of_element_located((By.ID, "ap_email"))
-    ).send_keys(username)
+    exc = None
+    for target in ['ap_email', 'ap_email_login']:
+        try:
+            WebDriverWait(driver, 4).until(
+                EC.presence_of_element_located((By.ID, target))
+            ).send_keys(username)
+        except exceptions.TimeoutException as exc:
+            continue
+        else:
+            break
+    else:
+        if exc:
+            raise exc
 
     WebDriverWait(driver, max_wait).until(
         EC.element_to_be_clickable((By.ID, "continue"))
