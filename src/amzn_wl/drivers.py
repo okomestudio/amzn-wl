@@ -12,6 +12,10 @@ def create_driver(headless: bool = True) -> webdriver.Chrome:
     if headless:
         options.add_argument("--headless=new")
 
+    # NOTE(2025-10-07): Unless GPU acceleration is disabled, Chrome
+    # appears to render blank.
+    options.add_argument('--disable-gpu')
+
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
     options.add_experimental_option("useAutomationExtension", False)
 

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "amzn_wl"
-version = "24.9.0"
+version = "25.10.0"
 authors = [{name="Taro Sato", email="okomestudio@gmail.com"}]
 description = "amzn-wl for Python"
 readme = "README.md"
