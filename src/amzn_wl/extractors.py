@@ -145,14 +145,20 @@ def extract_wishlist_items(
     driver: webdriver.Chrome, wishlist: Wishlist
 ) -> list[WishlistItem]:
     """Get items from the given wishlist."""
+    logger.info("Extracting items from wishlist %s...", wishlist)
     driver.get(wishlist.url)
     scroll_till_fully_loaded(driver, "endOfListMarker")
 
     elmts = driver.find_elements(
         By.XPATH, "//ul[@id='g-items']//li[contains(@class, 'g-item-sortable')]"
     )
-    items = [extract_wishlist_item(driver, wishlist, elmt) for elmt in elmts]
-    return [item for item in items if item]
+    items = [
+        item
+        for item in [extract_wishlist_item(driver, wishlist, elmt) for elmt in elmts]
+        if item
+    ]
+    logger.info("The number of items extracted %s in %s", len(items), wishlist)
+    return items
 
 
 def extract_wishlist(elmt: WebElement) -> Wishlist | None:
@@ -171,6 +177,7 @@ def extract_wishlist(elmt: WebElement) -> Wishlist | None:
     wishlist = Wishlist(wishlist_id, site, name)
     db.ensure_wishlist(wishlist)
 
+    logger.info("Extracted wishlist %s", wishlist)
     return wishlist
 
 
