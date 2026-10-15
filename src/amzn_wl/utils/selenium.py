@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 def scroll_till_fully_loaded(
-    driver: webdriver.Chrome, stop_condition: str, max_try: int = 50, wait: int = 1.5
+    driver: webdriver.Chrome, stop_condition: str, max_try: int = 5, wait: int = 1.5
 ) -> None:
     """Scroll down a wishlist page till the end."""
     for trial in range(max_try):

@@ -189,6 +189,13 @@ def get_all_wishlist_items(
 
     driver.get(url)
 
+    wait = WebDriverWait(driver, 10)
+    show_more_locator = (By.CSS_SELECTOR, "span.show-more-button")
+    show_more_button = wait.until(EC.element_to_be_clickable(show_more_locator))
+    # driver.execute_script("arguments[0].scrollIntoView(true);", show_more_button)
+    show_more_button.click()
+    wait.until(EC.invisibility_of_element_located((By.CLASS_NAME, "show-more-button")))
+
     elmt = WebDriverWait(driver, 5).until(
         EC.presence_of_element_located((By.ID, "your-lists-nav"))
     )
